@@ -45,20 +45,20 @@ My system had the research pipeline and the search. Theirs had the evaluation di
 
 ## What This Combines
 
-| Capability             | Source                                                     | How It Works                                                      |
-| ---------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------- |
-| Hybrid semantic search | [vault-search](https://github.com/vachsark/vault-search)   | BM25 + embeddings + Reciprocal Rank Fusion, LLM reranking         |
-| Multi-wave research    | [autoknowledge](https://github.com/vachsark/autoknowledge) | Parallel agents → critic → skeptic → synthesis                    |
-| Pre-flight dedup       | autoknowledge                                              | Search before researching — skip or narrow if overlap >85%        |
-| Adversarial skeptic    | autoknowledge                                              | Challenges claims, rejects ~60% of weak connections               |
-| Backpressure gate      | [autocontext](https://github.com/greyhaven-ai/autocontext) | Rejects runs below minimum quality delta                          |
-| Knowledge curation     | autocontext                                                | LLM curator: accept / merge / discard decisions                   |
-| Lesson tracking        | autocontext                                                | Applicability windowing — lessons decay when stale                |
-| Versioned persistence  | autocontext                                                | Mutation log + checkpoints + replay                               |
-| Self-improving rules   | vault system                                               | Evidence-tracked rules with hit counters and severity-based decay |
-| Heartbeat scheduler    | vault system                                               | Autonomous task scheduling with state/config separation           |
-| Model routing          | both                                                       | Frontier (Anthropic) for synthesis, local (Ollama) for retrieval  |
-| Training export        | autocontext                                                | Validated knowledge → fine-tuning data                            |
+| Capability               | Source                                                     | How It Works                                                      |
+| ------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| Search + knowledge graph | [vault-search](https://github.com/vachsark/vault-search)   | BM25 + embeddings + RRF + entity/relationship graph extraction    |
+| Multi-wave research      | [autoknowledge](https://github.com/vachsark/autoknowledge) | Parallel agents → critic → skeptic → synthesis                    |
+| Pre-flight dedup         | autoknowledge                                              | Search before researching — skip or narrow if overlap >85%        |
+| Adversarial skeptic      | autoknowledge                                              | Challenges claims, rejects ~60% of weak connections               |
+| Backpressure gate        | [autocontext](https://github.com/greyhaven-ai/autocontext) | Rejects runs below minimum quality delta                          |
+| Knowledge curation       | autocontext                                                | LLM curator: accept / merge / discard decisions                   |
+| Lesson tracking          | autocontext                                                | Applicability windowing — lessons decay when stale                |
+| Versioned persistence    | autocontext                                                | Mutation log + checkpoints + replay                               |
+| Self-improving rules     | vault system                                               | Evidence-tracked rules with hit counters and severity-based decay |
+| Heartbeat scheduler      | vault system                                               | Autonomous task scheduling with state/config separation           |
+| Model routing            | both                                                       | Frontier (Anthropic) for synthesis, local (Ollama) for retrieval  |
+| Training export          | autocontext                                                | Validated knowledge → fine-tuning data                            |
 
 ---
 
@@ -253,7 +253,7 @@ This project wouldn't exist without:
 
 - **[autocontext](https://github.com/greyhaven-ai/autocontext)** by greyhaven-ai — the evaluation loop architecture, backpressure gating, lesson management, and knowledge curation patterns. Their system showed me what disciplined knowledge persistence looks like.
 - **[autoresearch](https://x.com/karpathy/status/2029701092347630069)** by Andrej Karpathy — the `program.md` pattern, single-metric evaluation, and the idea that agents should run experiments autonomously overnight.
-- **[vault-search](https://github.com/vachsark/vault-search)** — the hybrid retrieval engine powering pre-flight dedup and knowledge search.
+- **[vault-search](https://github.com/vachsark/vault-search)** — hybrid semantic search + knowledge graph extraction. Powers pre-flight dedup, knowledge search, and entity/relationship context.
 - **[autoknowledge](https://github.com/vachsark/autoknowledge)** — the predecessor project where the multi-wave research pipeline was developed and benchmarked.
 
 ---
