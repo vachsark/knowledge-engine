@@ -1,8 +1,100 @@
 # knowledge-engine
 
-Continuous knowledge accumulation with structured evaluation loops.
+Automated research pipeline that builds a personal knowledge base. Uses Claude Code agents to research topics, critique results, and filter weak connections. Stores everything as searchable markdown notes with a knowledge graph.
 
-> **Status**: This is an early scaffold — interfaces are defined, implementations are coming. Star/watch if you want to follow along.
+## Quick start
+
+```bash
+git clone https://github.com/vachsark/knowledge-engine
+cd knowledge-engine
+
+# Requirements: Claude Code CLI + Ollama
+ollama pull qwen3-embedding:0.6b   # embeddings (free, local)
+ollama pull qwen3:8b               # graph extraction (free, local)
+
+# Research a topic (uses Claude Sonnet for research, local models for search/graph)
+./run.sh "quantum error correction"
+
+# Deep mode: research + critique + adversarial review
+./run.sh "mechanism design" --deep
+
+# Multiple topics from a file
+./run.sh --topics my-topics.txt
+```
+
+Notes are created in `Knowledge/` as atomic Zettelkasten-style markdown. The search index and knowledge graph update automatically after each run.
+
+## What it does
+
+```
+./run.sh "topic"
+    ↓
+Pre-flight: vault-search checks for existing coverage (skip duplicates)
+    ↓
+Research agent: WebSearch + evidence gathering → writes atomic note
+    ↓
+[--deep] Critic agent: checks claims, adds sources, flags gaps
+    ↓
+[--deep] Skeptic agent: removes weak cross-domain connections (~60% rejection rate)
+    ↓
+Index update: new note gets embedded + entities extracted into knowledge graph
+    ↓
+Next search includes this note's content AND its entity connections
+```
+
+## System requirements
+
+| Component   | Minimum               | Recommended                  |
+| ----------- | --------------------- | ---------------------------- |
+| **RAM**     | 8 GB                  | 16+ GB                       |
+| **GPU**     | None (CPU works)      | 8+ GB VRAM (NVIDIA or AMD)   |
+| **Storage** | 5 GB (models + index) | 10+ GB                       |
+| **CPU**     | Any modern multi-core | —                            |
+| **OS**      | Linux, macOS          | Linux (for GPU acceleration) |
+
+### Software
+
+| Tool                                                          | Purpose                                  | Cost                              |
+| ------------------------------------------------------------- | ---------------------------------------- | --------------------------------- |
+| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | Research agents (Sonnet)                 | API usage (~$0.50-2.00 per topic) |
+| [Ollama](https://ollama.ai)                                   | Embeddings, graph extraction, re-ranking | Free (runs locally)               |
+| Python 3.10+                                                  | Search index, graph extraction           | Free                              |
+
+### Models pulled by Ollama
+
+| Model                  | Size    | Purpose                                            |
+| ---------------------- | ------- | -------------------------------------------------- |
+| `qwen3-embedding:0.6b` | ~400 MB | Embedding generation for semantic search           |
+| `qwen3:8b`             | ~5 GB   | Entity/relationship extraction for knowledge graph |
+
+GPU is optional — Ollama falls back to CPU. Search works on CPU in ~4s; graph extraction is ~30-40s per note on CPU vs ~15s on GPU.
+
+## Searching your knowledge
+
+After running a few research sessions, search across everything:
+
+```bash
+python3 vault-search.py "reinforcement learning" .
+
+# Returns ranked files + graph context:
+#   0.0323  Knowledge/cs--inverse-reinforcement-learning.md
+#   ── Graph Context ──
+#   reinforcement learning (concept, 28 connections)
+#     → applies_to → reward hacking
+#     → builds_on → cybernetics
+#     ← markov decision process ← relates_to
+```
+
+See [vault-search](https://github.com/vachsark/vault-search) for full search documentation.
+
+## Cost
+
+- **Local models**: Free (Ollama, runs on your hardware)
+- **Research agents**: ~$0.50-2.00 per topic via Claude Sonnet API
+- **Deep mode** (+ critic + skeptic): ~$1.50-4.00 per topic
+- **Search/graph queries**: Free (all local)
+
+A 10-topic research session in deep mode costs roughly $15-30.
 
 ---
 
