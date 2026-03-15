@@ -1,0 +1,52 @@
+# Default evaluation rubric for knowledge-engine quality gate
+# Adapted from RACE framework + vault quality gate patterns
+#
+# Each dimension has:
+#   name:      Dimension identifier
+#   weight:    Contribution to total score (must sum to 1.0)
+#   prompt:    What the LLM evaluator is asked to score (0.0 – 1.0)
+#   min_score: Optional per-dimension minimum. Failing causes bounce regardless of total.
+#
+# To customize: copy this file, adjust weights/prompts, point to it in ke.yaml:
+#   rubric_path: ./my-rubric.yaml
+
+dimensions:
+  - name: relevance
+    weight: 0.25
+    prompt: |
+      Score how directly and completely this synthesis addresses the research topic.
+      1.0 = fully on-topic, comprehensive coverage of the stated topic
+      0.5 = partially relevant, significant tangents or gaps
+      0.0 = off-topic or wrong topic entirely
+    min_score: 0.50
+
+  - name: accuracy
+    weight: 0.30
+    prompt: |
+      Score the factual accuracy and supportedness of claims in this synthesis.
+      1.0 = all claims are specific, traceable, and well-supported
+      0.5 = some claims are vague or lack evidence
+      0.0 = significant unsupported or incorrect claims present
+    min_score: 0.60
+
+  - name: completeness
+    weight: 0.25
+    prompt: |
+      Score how thoroughly this synthesis covers the key aspects of the topic.
+      1.0 = all major aspects covered with appropriate depth
+      0.5 = key aspects present but surface-level, or some major aspects missing
+      0.0 = significant gaps that make the synthesis unhelpfully incomplete
+
+  - name: evidence
+    weight: 0.20
+    prompt: |
+      Score the quality of evidence and citations supporting claims.
+      1.0 = claims are backed by specific sources, papers, data, or examples
+      0.5 = some evidence present but inconsistent; some claims unsourced
+      0.0 = assertions without any supporting evidence or citations
+
+# Thresholds (can be overridden in settings)
+thresholds:
+  pass: 0.70        # Weighted total required to pass gate
+  bounce: 0.50      # Below this = immediate bounce (no retry)
+  abort: 0.30       # Below this = abort (don't retry, flag for review)

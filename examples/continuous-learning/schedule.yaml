@@ -1,0 +1,90 @@
+# Example task schedule for continuous learning
+# Place this at knowledge/schedule.yaml (or set path in ke.yaml)
+#
+# Schedule formats:
+#   daily HH:MM
+#   weekly <day> HH:MM
+#   weekly <day>,<day>,<day> HH:MM    (comma-separated)
+#   interval <N>m                     (every N minutes)
+#
+# Run: ke schedule --once
+# Or set up a cron: */15 * * * * ke schedule --once
+
+tasks:
+  # --- Research sessions ---
+  - name: daily-research-ml
+    schedule: "daily 02:30"
+    action: research
+    model: sonnet
+    params:
+      topic: "machine learning recent advances"
+      waves: 2
+      with_skeptic: true
+    timeout_seconds: 600
+    enabled: true
+
+  - name: research-cs-theory
+    schedule: "weekly monday,wednesday 03:00"
+    action: research
+    model: sonnet
+    params:
+      topic: "computer science theory"
+      waves: 2
+      with_skeptic: true
+    timeout_seconds: 600
+    enabled: true
+
+  - name: quick-daily-local
+    schedule: "daily 08:00"
+    action: research
+    model: local
+    params:
+      topic: "software engineering patterns"
+      waves: 1
+      with_skeptic: false
+    timeout_seconds: 300
+    enabled: true
+
+  # --- Knowledge maintenance ---
+  - name: lesson-distiller
+    schedule: "weekly monday 04:00"
+    action: distill
+    model: local
+    params:
+      source: notes
+      output: lessons
+    timeout_seconds: 300
+    enabled: true
+
+  - name: rule-decay-check
+    schedule: "weekly friday 22:00"
+    action: custom
+    model: local
+    params:
+      handler: "knowledge_engine.knowledge.rules:decay_inactive"
+      inactivity_days: 90
+    timeout_seconds: 60
+    enabled: true
+
+  # --- Export ---
+  - name: weekly-export
+    schedule: "weekly sunday 23:00"
+    action: export
+    model: local
+    params:
+      format: jsonl
+      output_dir: ./exports/weekly
+    timeout_seconds: 120
+    enabled: false  # Enable when ready to use exports
+
+  # --- Benchmark ---
+  - name: monthly-drb-benchmark
+    schedule: "weekly sunday 01:00"  # First sunday of month — check manually
+    action: benchmark
+    model: sonnet
+    params:
+      suite: drb
+      output: ./results/
+    requires_tools: true  # Skip local fallback — needs full tool access
+    timeout_seconds: 1800
+    enabled: false

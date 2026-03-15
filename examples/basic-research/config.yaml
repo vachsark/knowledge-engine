@@ -1,0 +1,23 @@
+# Minimal config for a single research session
+# Copy to ke.yaml in your project root
+
+knowledge_dir: ./knowledge
+
+# Use local model (no API key needed)
+# Requires: ollama pull qwen3:8b && ollama pull qwen3-embedding:0.6b
+default_model: local
+local_model: qwen3:8b
+embed_model: qwen3-embedding:0.6b
+rerank_model: qwen3:8b
+
+# Quality gate (lower threshold = more permissive for experimentation)
+backpressure_min_delta: 0.005
+gate_pass_threshold: 0.65
+gate_max_bounces: 2
+
+# Lessons (smaller window for quick experiments)
+max_lessons: 20
+staleness_window: 5
+
+# Budget (generous for a one-off session)
+token_budget_daily: 100000
