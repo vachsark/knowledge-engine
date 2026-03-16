@@ -1,26 +1,27 @@
 # Academic Research Assistant
 
-This project helps you find scholarly papers and original studies for your research.
+**Any time the user mentions research, papers, articles, sources, literature, studies, or a research topic — follow this protocol. Do NOT do a freeform web search and summarize. Use the structured pipeline below.**
 
-## When the user asks to research a topic
+## Protocol
 
-1. **Find papers**: Use WebSearch to find scholarly sources (Google Scholar, Semantic Scholar, arXiv, PubMed)
-2. **Save each source** as a file in `sources/` using the format below
-3. **Export**: Run `python3 scripts/export-bibtex.py sources` and `python3 scripts/export-csv.py sources`
-4. **Report**: Tell the user what you found and where the files are
+1. **Search** for scholarly papers using WebSearch (Google Scholar, Semantic Scholar, arXiv, PubMed)
+2. **Save each source** as a structured file in `sources/` (format below)
+3. **Every source MUST have authors.** If you can't find authors, search harder. Never save `authors: []`.
+4. **Export**: Run `python3 scripts/export-bibtex.py sources` and `python3 scripts/export-csv.py sources`
+5. **Report**: Tell the user what you found, organized by type (foundational, original studies, reviews, meta-analyses)
 
-## What to prioritize
+## What to find
 
-- Original studies with empirical data
-- Foundational/seminal papers
+- Original studies with empirical data (experiments, surveys, clinical trials)
+- Foundational/seminal papers that established the field
 - Recent meta-analyses and systematic reviews
-- Cross-disciplinary perspectives
+- Cross-disciplinary work with unique perspectives
 
-Do NOT prioritize news articles, blog posts, or non-peer-reviewed content.
+Do NOT include news articles, blog posts, Wikipedia, or non-peer-reviewed content.
 
 ## Source file format
 
-Save each paper as `sources/source-NNN.md`:
+Save each paper as `sources/source-NNN.md` (zero-padded, sequential):
 
 ```markdown
 ---
@@ -32,66 +33,61 @@ doi: "10.xxxx/xxxxx"
 pdf_url: "https://..."
 type: original-study
 relevance: high
-research_question: "the user's question"
+research_question: "the user's original question"
 ---
 
 # Exact Paper Title
 
 ## Abstract
 
-<the paper's actual abstract>
+<the paper's REAL abstract — never fabricate>
 
 ## Why This Is Relevant
 
-<1-2 sentences>
+<1-2 sentences on why this matters for the research question>
 ```
 
 Valid types: `original-study`, `meta-analysis`, `systematic-review`, `review`, `foundational`, `book-chapter`
+Valid relevance: `high`, `medium`, `low`
 
 ## Critical rules
 
-- **NEVER fabricate citations.** Only include papers you found via search. Leave DOI empty if you can't find it.
+- **NEVER fabricate citations.** Only include papers you actually found via search.
 - **NEVER invent abstracts.** Use the real abstract or write "Abstract not available."
-- Find at least 10 sources per topic. Aim for 15-20.
+- **NEVER leave authors empty.** Search for the authors if you don't have them.
+- **Leave DOI empty** (not fake) if you can't find it.
+- Find at least 10 sources. Aim for 15-20.
+- Number files sequentially starting from the next available number.
 
-## Modes (user can request)
+## Modes
 
-| Request                    | What to do                                                                                         |
-| -------------------------- | -------------------------------------------------------------------------------------------------- |
-| "find papers about X"      | Find + save citations (Abstract + Why Relevant only)                                               |
-| "summarize papers about X" | Find + save + add Key Findings section (3-5 bullets)                                               |
-| "analyze papers about X"   | Find + summarize + create `analysis/` with themes.md, gaps.md, timeline.md, methodology-summary.md |
-| "review my sources"        | Use the `research-critic` agent to verify citations exist                                          |
-| "check relevance"          | Use the `research-skeptic` agent to re-evaluate relevance ratings                                  |
+| User says               | What to do                                                                                                |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| "find/research [topic]" | Find + save citations (Abstract + Why Relevant)                                                           |
+| "summarize [topic]"     | Find + save + add **Key Findings** section (3-5 bullets per paper)                                        |
+| "analyze [topic]"       | Find + summarize + create `analysis/` folder with themes.md, gaps.md, timeline.md, methodology-summary.md |
+| "review my sources"     | Verify citations are real, fix errors, flag unverifiable papers                                           |
+| "check relevance"       | Re-evaluate relevance ratings, downgrade papers that don't fit the research question                      |
 
-## Available agents
+## Agents
 
-- `research-team` — finds and saves papers (primary)
-- `research-critic` — verifies citations are real, fixes errors
-- `research-skeptic` — checks relevance ratings are accurate
-- `research-analyzer` — cross-paper analysis (themes, gaps, timeline)
+Use these for deeper work:
 
-## Search index (optional, requires Ollama)
-
-If the user has Ollama running, you can search existing sources:
-
-```bash
-python3 vault-search.py "query" . --top 5
-```
-
-This checks what's already been found to avoid duplicates.
+- `research-team` — primary paper finder
+- `research-critic` — verifies citations exist and are accurate
+- `research-skeptic` — strict relevance review
+- `research-analyzer` — cross-paper themes, gaps, and timeline
 
 ## Exports
 
-After finding sources, always run:
+After finding sources, ALWAYS run both:
 
 ```bash
-python3 scripts/export-bibtex.py sources    # → bibliography.bib
-python3 scripts/export-csv.py sources       # → sources.csv
+python3 scripts/export-bibtex.py sources
+python3 scripts/export-csv.py sources
 ```
 
-These let the user import into Zotero, Overleaf, Google Sheets, etc.
+Output:
 
-## Terminal alternative
-
-Users can also run `./research.sh "topic"` from the terminal. This script automates the full flow including pre-flight search, agent invocation, and exports.
+- `bibliography.bib` — for Zotero, Overleaf, LaTeX
+- `sources.csv` — for Google Sheets, Excel, Notion

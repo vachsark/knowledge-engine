@@ -92,59 +92,19 @@ check_deps() {
         echo -e "${YELLOW}Python 3 not found. Install Python 3.10+${NC}"
         exit 1
     fi
-
-    # Ollama is optional — only needed for local search indexing
-    HAS_OLLAMA=false
-    if curl -s --max-time 3 http://localhost:11434/api/tags &>/dev/null; then
-        HAS_OLLAMA=true
-
-        # Pull small embedding model if missing
-        local models
-        models=$(curl -s http://localhost:11434/api/tags | python3 -c "import sys,json; print(' '.join(m['name'] for m in json.loads(sys.stdin.read()).get('models',[])))" 2>/dev/null || echo "")
-
-        if [[ ! "$models" == *"qwen3-embedding"* ]]; then
-            echo -e "${CYAN}Pulling embedding model (~400MB, one-time)...${NC}"
-            ollama pull qwen3-embedding:0.6b
-        fi
-    fi
 }
 
-# ── Download vault-search tools if needed ───────────────────────────
-ensure_tools() {
-    if [[ ! -f "$SCRIPT_DIR/vault-search.py" ]]; then
-        echo -e "${CYAN}Downloading search tools...${NC}"
-        local base="https://raw.githubusercontent.com/vachsark/vault-search/master"
-        curl -sL "$base/vault-search.py" -o "$SCRIPT_DIR/vault-search.py"
-        curl -sL "$base/vault-index.py" -o "$SCRIPT_DIR/vault-index.py"
-        curl -sL "$base/vault-graph.py" -o "$SCRIPT_DIR/vault-graph.py"
-        chmod +x "$SCRIPT_DIR"/vault-*.py
-    fi
-}
 
-# ── Build search index ──────────────────────────────────────────────
-ensure_index() {
-    [[ "$HAS_OLLAMA" == "false" ]] && return
-
-    local db_path
-    db_path=$(python3 -c "
-import hashlib
-from pathlib import Path
-root = Path('$SCRIPT_DIR').resolve()
-h = hashlib.sha256(str(root).encode()).hexdigest()[:12]
-print(Path.home() / '.local/share/vault-search' / f'{h}.db')
-" 2>/dev/null)
-
-    if [[ ! -f "$db_path" ]] || [[ -d "$SOURCES_DIR" ]]; then
-        python3 "$SCRIPT_DIR/vault-index.py" "$SCRIPT_DIR" --no-summary 2>/dev/null || true
-    fi
-}
-
-# ── Pre-flight search ───────────────────────────────────────────────
+# ── Pre-flight check ─────────────────────────────────────────────────
 preflight() {
     local topic="$1"
-    if [[ "$HAS_OLLAMA" == "true" ]]; then
-        echo -e "${DIM}Checking for existing sources on this topic...${NC}"
-        python3 "$SCRIPT_DIR/vault-search.py" "$topic" "$SCRIPT_DIR" --top 3 --no-graph 2>/dev/null || true
+    # Check if we already have sources on this topic
+    if ls "$SOURCES_DIR"/source-*.md &>/dev/null; then
+        local existing
+        existing=$(grep -l "$topic" "$SOURCES_DIR"/source-*.md 2>/dev/null | wc -l)
+        if [[ "$existing" -gt 0 ]]; then
+            echo -e "${DIM}Found $existing existing sources related to this topic.${NC}"
+        fi
     fi
 }
 
@@ -248,12 +208,6 @@ Valid relevance: high, medium, low
 
 IMPORTANT: Only include real papers with real DOIs. Do not fabricate citations. If you can't find a DOI, leave the field empty. If you're unsure about details, note that in the file."
 
-    if [[ "$HAS_OLLAMA" == "true" ]]; then
-        task_prompt="$task_prompt
-
-You can check what's already been found with:
-  python3 $SCRIPT_DIR/vault-search.py \"$topic\" $SCRIPT_DIR --top 5 --no-graph"
-    fi
 
     echo -e "${CYAN}Finding papers...${NC}"
     run_agent "research-team" "$task_prompt" 2
@@ -294,11 +248,6 @@ Each file should cite specific papers by title and be useful for a literature re
             echo -e "  ${GREEN}✓${NC} sources.csv" || true
     fi
 
-    # Update search index if Ollama is available
-    if [[ "$HAS_OLLAMA" == "true" ]]; then
-        echo -e "${DIM}Updating search index...${NC}"
-        python3 "$SCRIPT_DIR/vault-index.py" "$SCRIPT_DIR" --no-summary 2>/dev/null || true
-    fi
 
     local source_count
     source_count=$(ls "$SOURCES_DIR"/source-*.md 2>/dev/null | wc -l)
@@ -333,7 +282,6 @@ main() {
 
     detect_cli
     check_deps
-    ensure_tools
 
     local mode="find"
     local deep=false
@@ -349,8 +297,6 @@ main() {
             *)          topic="$1"; shift ;;
         esac
     done
-
-    ensure_index
 
     if [[ -n "$topics_file" ]]; then
         while IFS= read -r t; do
