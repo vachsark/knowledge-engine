@@ -1,4 +1,11 @@
-# Auto-downloaded by run.sh from vault-search repo
+# Auto-downloaded by research.sh from vault-search repo
 vault-search.py
 vault-index.py
 vault-graph.py
+
+# Research output (user-specific)
+sources/
+analysis/
+bibliography.bib
+sources.csv
+Knowledge/
