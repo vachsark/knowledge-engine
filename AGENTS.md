@@ -128,21 +128,30 @@ Use these for deeper work:
 
 ## Exports
 
-After finding sources, ALWAYS run all three:
+After finding sources, ALWAYS run exports for the project AND regenerate the main viewer:
 
 ```bash
 python3 scripts/export-bibtex.py <path-to-sources>
 python3 scripts/export-csv.py <path-to-sources>
-python3 scripts/generate-viewer.py <path-to-sources>
 ```
+
+Then ALWAYS regenerate the root-level viewer that shows ALL sources across ALL projects:
+
+```bash
+python3 scripts/generate-viewer.py --scan .
+```
+
+This auto-finds all sources/ folders and creates ONE index.html at the project root.
+
+The viewer (index.html) MUST always be at the project root -- never inside a subfolder. There is ONE viewer that shows everything.
 
 Output:
 
-- `bibliography.bib` -- for Zotero, Overleaf, LaTeX
-- `sources.csv` -- for Google Sheets, Excel, Notion
-- `index.html` -- open in browser to view, search, filter, and approve/decline papers
+- `<project>/bibliography.bib` -- per-project BibTeX
+- `<project>/sources.csv` -- per-project spreadsheet
+- `index.html` -- ONE root-level viewer showing ALL papers from ALL projects
 
-After generating, ALWAYS print the full clickable file path to the viewer so the user can open it directly. Example:
+After generating, ALWAYS print the full clickable file path:
 
 > "Your papers are ready! Open the viewer:
 > file:///Users/username/knowledge-engine/index.html

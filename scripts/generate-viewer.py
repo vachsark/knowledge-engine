@@ -459,9 +459,54 @@ render();
 
 
 def main():
-    sources_dir = sys.argv[1] if len(sys.argv) > 1 else "sources"
-    output_file = os.path.join(os.path.dirname(sources_dir) or ".", "index.html")
-    generate_html(sources_dir, output_file)
+    # Accept multiple source directories — generates ONE viewer with all papers
+    # Usage: generate-viewer.py sources
+    #        generate-viewer.py projects/diss/sources projects/group/sources
+    #        generate-viewer.py --scan .   (auto-find all sources/ folders)
+    args = sys.argv[1:] if len(sys.argv) > 1 else ["sources"]
+
+    if args[0] == "--scan":
+        # Auto-discover all sources/ directories
+        scan_root = args[1] if len(args) > 1 else "."
+        source_dirs = []
+        for dirpath, dirnames, filenames in os.walk(scan_root):
+            if os.path.basename(dirpath) == "sources" and any(f.startswith("source-") for f in filenames):
+                source_dirs.append(dirpath)
+        if not source_dirs:
+            # Fallback: check root sources/
+            if os.path.isdir(os.path.join(scan_root, "sources")):
+                source_dirs = [os.path.join(scan_root, "sources")]
+        args = source_dirs if source_dirs else ["sources"]
+
+    if len(args) == 1:
+        # Single directory — output next to it or at root
+        sources_dir = args[0]
+        # Always output at project root (find the knowledge-engine root)
+        script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        output_file = os.path.join(script_dir, "index.html")
+        generate_html(sources_dir, output_file)
+    else:
+        # Multiple directories — merge all into one viewer at project root
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            count = 0
+            for src_dir in args:
+                src_path = Path(src_dir)
+                if not src_path.exists():
+                    continue
+                for md in src_path.glob("source-*.md"):
+                    count += 1
+                    # Prefix with project name to avoid collisions
+                    project = src_path.parent.name
+                    dest = os.path.join(tmpdir, f"{project}--{md.name}")
+                    import shutil
+                    shutil.copy2(md, dest)
+            if count == 0:
+                print("No sources found in any directory", file=sys.stderr)
+                sys.exit(1)
+            script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            output_file = os.path.join(script_dir, "index.html")
+            generate_html(tmpdir, output_file)
 
 
 if __name__ == "__main__":
