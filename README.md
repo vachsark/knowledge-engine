@@ -160,7 +160,22 @@ Plus exports:
 | "Review my sources"        | Verifies citations are real, flags anything suspicious     |
 | "Check relevance"          | Re-evaluates which papers actually fit your question       |
 
-## Using your sources
+## Viewing your sources
+
+After research completes, open `index.html` in your browser. You get:
+
+- All your papers in a clean, searchable interface
+- Filter by type (original study, meta-analysis, review, etc.)
+- Filter by relevance (high, medium, low)
+- **Approve/decline** each paper -- decisions are saved automatically
+- Sort by relevance, year, or title
+- Direct links to DOI and PDF for each paper
+
+Your approve/decline decisions persist across browser refreshes. Ask your AI assistant to update the page after adding new research -- just say "update the viewer" and refresh your browser.
+
+Want to change how the page looks? Just ask your AI assistant -- it can customize colors, layout, or add new features to the viewer.
+
+## Exporting your sources
 
 **NotebookLM**: Upload the `sources/` folder for AI-assisted reading and Q&A across all your papers.
 

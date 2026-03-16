@@ -116,14 +116,20 @@ Use these for deeper work:
 
 ## Exports
 
-After finding sources, ALWAYS run both:
+After finding sources, ALWAYS run all three:
 
 ```bash
 python3 scripts/export-bibtex.py <path-to-sources>
 python3 scripts/export-csv.py <path-to-sources>
+python3 scripts/generate-viewer.py <path-to-sources>
 ```
 
 Output:
 
 - `bibliography.bib` -- for Zotero, Overleaf, LaTeX
 - `sources.csv` -- for Google Sheets, Excel, Notion
+- `index.html` -- open in browser to view, search, filter, and approve/decline papers
+
+After generating, tell the user: "Open index.html in your browser to see your papers. You can approve or decline each one. Ask me to update or customize the page anytime."
+
+When the user asks to update the viewer after new research, re-run `generate-viewer.py` and tell them to refresh. Their approve/decline decisions are preserved (stored in browser localStorage). The user can ask you to customize the page -- colors, layout, sections -- just edit the generated index.html or the template in generate-viewer.py.

@@ -246,6 +246,8 @@ Each file should cite specific papers by title and be useful for a literature re
             echo -e "  ${GREEN}✓${NC} bibliography.bib" || true
         python3 "$SCRIPT_DIR/scripts/export-csv.py" "$SOURCES_DIR" 2>/dev/null && \
             echo -e "  ${GREEN}✓${NC} sources.csv" || true
+        python3 "$SCRIPT_DIR/scripts/generate-viewer.py" "$SOURCES_DIR" 2>/dev/null && \
+            echo -e "  ${GREEN}✓${NC} index.html (open in browser)" || true
     fi
 
 
@@ -313,6 +315,7 @@ main() {
     echo ""
     echo -e "${GREEN}${BOLD}═══════════════════════════════════════════════${NC}"
     echo -e "${GREEN}  Your sources are in: ${BOLD}sources/${NC}"
+    echo -e "${GREEN}  View in browser:     ${BOLD}index.html${NC}"
     echo -e "${GREEN}  BibTeX export:       ${BOLD}bibliography.bib${NC}"
     echo -e "${GREEN}  Spreadsheet:         ${BOLD}sources.csv${NC}"
     if [[ "$mode" == "analyze" ]]; then
@@ -320,8 +323,8 @@ main() {
     fi
     echo -e "${GREEN}${BOLD}═══════════════════════════════════════════════${NC}"
     echo ""
-    echo -e "${DIM}Tip: Upload sources/ to NotebookLM for AI-assisted reading${NC}"
-    echo -e "${DIM}Tip: Import bibliography.bib into Zotero or Overleaf${NC}"
+    echo -e "${DIM}Open index.html in your browser to view, search, and approve/decline papers.${NC}"
+    echo -e "${DIM}Ask your AI assistant to update or customize the page anytime.${NC}"
 }
 
 main "$@"
