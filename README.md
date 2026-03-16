@@ -1,355 +1,229 @@
-# knowledge-engine
+# Knowledge Engine
 
-Automated research pipeline that builds a personal knowledge base. Uses Claude Code agents to research topics, critique results, and filter weak connections. Stores everything as searchable markdown notes with a knowledge graph.
+An academic research assistant that finds scholarly papers for your projects. Works with Claude Code, Gemini CLI, or Codex -- use whichever AI tool you already have access to through school or work.
+
+## What it does
+
+You ask for research. It finds 10-20 real, peer-reviewed papers and saves them as structured files with citations, abstracts, and relevance notes. Exports to BibTeX (for Zotero/Overleaf) and CSV (for spreadsheets).
+
+No AI-generated essays. No fake citations. Just real papers, organized and ready to use.
 
 ## Quick start
+
+### 1. Install an AI CLI (pick one)
+
+**Claude Code** (Anthropic):
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+**Gemini CLI** (Google -- free with Google Workspace/student accounts):
+
+```bash
+npm install -g @anthropic-ai/gemini-cli
+```
+
+Visit [github.com/google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli) for the latest install instructions.
+
+**Codex** (OpenAI):
+
+```bash
+npm install -g @openai/codex
+```
+
+Visit [github.com/openai/codex](https://github.com/openai/codex) for the latest install instructions.
+
+If you don't have npm, install [Node.js](https://nodejs.org) first.
+
+### 2. Clone and open
 
 ```bash
 git clone https://github.com/vachsark/knowledge-engine
 cd knowledge-engine
-
-# Requirements: Claude Code CLI + Ollama
-ollama pull qwen3-embedding:0.6b   # embeddings (free, local)
-ollama pull qwen3:8b               # graph extraction (free, local)
-
-# Research a topic (uses Claude Sonnet for research, local models for search/graph)
-./run.sh "quantum error correction"
-
-# Deep mode: research + critique + adversarial review
-./run.sh "mechanism design" --deep
-
-# Multiple topics from a file
-./run.sh --topics my-topics.txt
 ```
 
-Notes are created in `Knowledge/` as atomic Zettelkasten-style markdown. The search index and knowledge graph update automatically after each run.
+### 3. Start your CLI and ask for research
 
-## What it does
+```bash
+claude          # or: gemini, codex
+```
+
+Then just type what you need:
+
+> "Find me papers about the effects of social media on adolescent mental health"
+
+The first time, it will ask how you want to organize your files (by project, topic, class, or simple).
+
+## How it works
 
 ```
-./run.sh "topic"
-    ↓
-Pre-flight: vault-search checks for existing coverage (skip duplicates)
-    ↓
-Research agent: WebSearch + evidence gathering → writes atomic note
-    ↓
-[--deep] Critic agent: checks claims, adds sources, flags gaps
-    ↓
-[--deep] Skeptic agent: removes weak cross-domain connections (~60% rejection rate)
-    ↓
-Index update: new note gets embedded + entities extracted into knowledge graph
-    ↓
-Next search includes this note's content AND its entity connections
+You: "Research [topic]"
+  |
+  v
+AI searches Google Scholar, PubMed, Semantic Scholar, arXiv
+  |
+  v
+Saves 10-20 papers as structured markdown files
+  |
+  v
+Exports bibliography.bib + sources.csv
+  |
+  v
+You: upload to NotebookLM, import to Zotero, or read directly
+```
+
+## Project organization
+
+On first use, the assistant asks how you want to organize. Options:
+
+**By project:**
+
+```
+projects/
+  dissertation/
+    sources/
+    bibliography.bib
+    sources.csv
+  group-project/
+    sources/
+    bibliography.bib
+```
+
+**By topic:**
+
+```
+projects/
+  neuroscience/
+    sources/
+  climate-policy/
+    sources/
+```
+
+**By class:**
+
+```
+projects/
+  psych-401/
+    sources/
+  econ-200/
+    sources/
+```
+
+**Simple** (one folder for everything):
+
+```
+sources/
+bibliography.bib
+sources.csv
+```
+
+## What you get
+
+Each paper is saved as a markdown file:
+
+```markdown
+---
+title: "Paper Title"
+authors: ["Author One", "Author Two"]
+year: 2024
+journal: "Journal Name"
+doi: "10.xxxx/xxxxx"
+pdf_url: "https://..."
+type: original-study
+relevance: high
+---
+
+# Paper Title
+
+## Abstract
+
+The actual paper abstract...
+
+## Why This Is Relevant
+
+Why this paper matters for your research question.
+```
+
+Plus exports:
+
+- **bibliography.bib** -- import into Zotero, Overleaf, or any LaTeX editor
+- **sources.csv** -- open in Google Sheets, Excel, or Notion
+
+## Research modes
+
+| What you say               | What happens                                               |
+| -------------------------- | ---------------------------------------------------------- |
+| "Find papers about X"      | Finds papers, saves citations with abstracts               |
+| "Summarize papers about X" | Same + adds Key Findings (3-5 bullets per paper)           |
+| "Analyze papers about X"   | Same + creates analysis folder with themes, gaps, timeline |
+| "Review my sources"        | Verifies citations are real, flags anything suspicious     |
+| "Check relevance"          | Re-evaluates which papers actually fit your question       |
+
+## Using your sources
+
+**NotebookLM**: Upload the `sources/` folder for AI-assisted reading and Q&A across all your papers.
+
+**Zotero**: File > Import > select `bibliography.bib`
+
+**Overleaf/LaTeX**: Upload `bibliography.bib` to your project, use `\cite{key}` in your paper.
+
+**Google Sheets**: Upload `sources.csv` to track and filter your sources.
+
+**Notion**: Import `sources.csv` as a database, or paste individual source files.
+
+## Terminal alternative
+
+If you prefer the command line over the interactive CLI:
+
+```bash
+./research.sh "your research question"
+./research.sh "topic" --mode summarize
+./research.sh "topic" --mode analyze
+./research.sh "topic" --deep              # adds citation verification
+./research.sh --topics topics.txt         # batch mode
 ```
 
 ## System requirements
 
-| Component   | Minimum               | Recommended                  |
-| ----------- | --------------------- | ---------------------------- |
-| **RAM**     | 8 GB                  | 16+ GB                       |
-| **GPU**     | None (CPU works)      | 8+ GB VRAM (NVIDIA or AMD)   |
-| **Storage** | 5 GB (models + index) | 10+ GB                       |
-| **CPU**     | Any modern multi-core | —                            |
-| **OS**      | Linux, macOS          | Linux (for GPU acceleration) |
+- **Any computer** (Mac, Windows, Linux)
+- **Node.js** (for installing the CLI)
+- **Python 3.10+** (for export scripts -- comes pre-installed on Mac/Linux)
+- **One AI CLI** (Claude Code, Gemini CLI, or Codex)
 
-### Software
-
-| Tool                                                          | Purpose                                  | Cost                              |
-| ------------------------------------------------------------- | ---------------------------------------- | --------------------------------- |
-| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | Research agents (Sonnet)                 | API usage (~$0.50-2.00 per topic) |
-| [Ollama](https://ollama.ai)                                   | Embeddings, graph extraction, re-ranking | Free (runs locally)               |
-| Python 3.10+                                                  | Search index, graph extraction           | Free                              |
-
-### Models pulled by Ollama
-
-| Model                  | Size    | Purpose                                            |
-| ---------------------- | ------- | -------------------------------------------------- |
-| `qwen3-embedding:0.6b` | ~400 MB | Embedding generation for semantic search           |
-| `qwen3:8b`             | ~5 GB   | Entity/relationship extraction for knowledge graph |
-
-GPU is optional — Ollama falls back to CPU. Search works on CPU in ~4s; graph extraction is ~30-40s per note on CPU vs ~15s on GPU.
-
-## Searching your knowledge
-
-After running a few research sessions, search across everything:
-
-```bash
-python3 vault-search.py "reinforcement learning" .
-
-# Returns ranked files + graph context:
-#   0.0323  Knowledge/cs--inverse-reinforcement-learning.md
-#   ── Graph Context ──
-#   reinforcement learning (concept, 28 connections)
-#     → applies_to → reward hacking
-#     → builds_on → cybernetics
-#     ← markov decision process ← relates_to
-```
-
-See [vault-search](https://github.com/vachsark/vault-search) for full search documentation.
+No GPU needed. No local models. No additional software.
 
 ## Cost
 
-- **Local models**: Free (Ollama, runs on your hardware)
-- **Research agents**: ~$0.50-2.00 per topic via Claude Sonnet API
-- **Deep mode** (+ critic + skeptic): ~$1.50-4.00 per topic
-- **Search/graph queries**: Free (all local)
+This uses your existing AI subscription credits:
 
-A 10-topic research session in deep mode costs roughly $15-30.
+- **Find mode**: ~$0.30 per topic
+- **Summarize mode**: ~$0.80 per topic
+- **Analyze mode**: ~$2.00 per topic
 
----
+Most students get free or discounted access through their school's Google Workspace, GitHub Education, or university AI programs.
 
-## How this got here
+## FAQ
 
-### Stage 1 — The vault (early 2026)
+**Is this cheating?**
+No. This finds real papers -- it doesn't write your essay. It's a smarter version of Google Scholar. You still read the papers, understand them, and write your own analysis.
 
-I have an Obsidian vault with 700+ atomic Zettelkasten notes spanning CS, economics, psychology, math, and a handful of other domains. It started as a manual knowledge base, then I added a single Claude agent that would pick topics from a queue and write notes overnight.
+**What if it finds a fake paper?**
+Say "review my sources" and it will verify each citation and flag anything it can't confirm as `[UNVERIFIED]`.
 
-It worked. Notes got created consistently, the queue drained, and the vault grew. But there was no quality control. Duplicates accumulated. Cross-domain connections were whatever the agent happened to notice on a given run. Quality was inconsistent — some notes were dense and well-sourced, others were shallow summaries I could have written in five minutes. The problem wasn't throughput. It was that nothing was checking whether the knowledge was actually good.
+**Can I use this for any field?**
+Yes -- it searches across all academic databases (STEM, social sciences, humanities, medicine, law).
 
-### Stage 2 — Karpathy's autoresearch (late February 2026)
+**Can I research multiple topics?**
+Yes. Organize them into projects and each one gets its own source folder and exports.
 
-Then I saw Andrej Karpathy's autoresearch post — his system for running autonomous ML experiments overnight with Claude Code. Three patterns clicked immediately: using a `program.md` as a human-editable strategy file, an append-only `results.tsv` for tracking runs, and simplifying evaluation to a single score you can track over time. That last one sounds obvious but it changes how you build everything. When you commit to a single metric, you stop arguing about what "better" means and start actually improving.
-
-I rebuilt my pipeline around these ideas.
-
-### Stage 3 — autoknowledge (March 2026)
-
-The result was [autoknowledge](https://github.com/vachsark/autoknowledge) — a multi-wave research pipeline where parallel agents research topics, a critic challenges the output, an adversarial skeptic rejects weak cross-domain connections (~60% rejection rate), and a synthesis wave integrates what survives. I added [vault-search](https://github.com/vachsark/vault-search) — hybrid BM25 + embeddings + RRF fusion — as the retrieval layer, so the pipeline could check what the vault already knew before researching anything. Pre-flight deduplication: if a topic has >85% overlap with existing knowledge, skip or narrow.
-
-I built a heartbeat scheduler that runs 16+ automated tasks on a local AMD GPU. All retrieval, reranking, and light synthesis runs at zero API cost. The frontier models only get involved for the synthesis that actually requires them.
-
-I benchmarked the pipeline on DeepResearch Bench (DRB): RACE score 0.5166 across 50 tasks — competitive with Gemini Deep Research and NVIDIA AIQ on report quality. Citation accuracy was 57.8% validity, which is an honest weak point. The pipeline is good at producing coherent, well-structured research but it doesn't verify sources rigorously enough. That's a known issue, actively being addressed.
-
-I also fine-tuned 7 local models on the vault's output over this period. That's a separate thread, but the short version is: if your knowledge base is large enough and consistent enough in style, you can distill some of what it knows into a smaller model. The quality ceiling is low, but for retrieval tasks and light classification it's useful.
-
-### Stage 4 — autocontext (March 2026)
-
-Then I found [autocontext](https://github.com/greyhaven-ai/autocontext) by greyhaven-ai. They'd built something complementary: a closed-loop system for improving agent behavior over repeated runs. Their multi-agent loop (competitor → analyst → coach → architect → curator) addresses problems I hadn't tackled:
-
-- **Backpressure gating**: Rejects runs where the knowledge delta is below a threshold. Prevents noise from accumulating. My system accepted almost everything that passed the quality rubric — which is not the same thing as requiring that a run actually adds something new.
-- **Lesson applicability windowing**: Lessons age out if not validated within N generations. I had self-improving rules with hit counters, but nothing that expired stale advice. Old lessons were just sitting there, potentially misleading future runs.
-- **Versioned persistence with mutation logs**: Every knowledge change is tracked, checkpointed, and replayable. I had versioned files but no mutation log — no way to trace why a note changed.
-- **Knowledge curation**: An LLM-based curator decides what to keep, merge, or discard. My pipeline was append-heavy. Autocontext's curator is a genuine quality gate at the persistence layer.
-
-My system had the research pipeline and the search. Theirs had the evaluation discipline and the persistence architecture. This repo combines both.
-
----
-
-## What This Combines
-
-| Capability               | Source                                                     | How It Works                                                      |
-| ------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------- |
-| Search + knowledge graph | [vault-search](https://github.com/vachsark/vault-search)   | BM25 + embeddings + RRF + entity/relationship graph extraction    |
-| Multi-wave research      | [autoknowledge](https://github.com/vachsark/autoknowledge) | Parallel agents → critic → skeptic → synthesis                    |
-| Pre-flight dedup         | autoknowledge                                              | Search before researching — skip or narrow if overlap >85%        |
-| Adversarial skeptic      | autoknowledge                                              | Challenges claims, rejects ~60% of weak connections               |
-| Backpressure gate        | [autocontext](https://github.com/greyhaven-ai/autocontext) | Rejects runs below minimum quality delta                          |
-| Knowledge curation       | autocontext                                                | LLM curator: accept / merge / discard decisions                   |
-| Lesson tracking          | autocontext                                                | Applicability windowing — lessons decay when stale                |
-| Versioned persistence    | autocontext                                                | Mutation log + checkpoints + replay                               |
-| Self-improving rules     | vault system                                               | Evidence-tracked rules with hit counters and severity-based decay |
-| Heartbeat scheduler      | vault system                                               | Autonomous task scheduling with state/config separation           |
-| Model routing            | both                                                       | Frontier (Anthropic) for synthesis, local (Ollama) for retrieval  |
-| Training export          | autocontext                                                | Validated knowledge → fine-tuning data                            |
-
----
-
-## Architecture
-
-```
-                    ┌─────────────────────────────────────────────┐
-                    │              knowledge-engine                │
-                    └─────────────────────────────────────────────┘
-
- ┌──────────┐    ┌──────────────────────────────────────────────────────┐
- │ Schedule │───▶│                  Research Pipeline                    │
- └──────────┘    │                                                      │
-                 │  Pre-flight ──▶ Wave 1 ──▶ Wave 1.5 ──▶ Wave 2      │
-                 │  (dedup)       (research)  (critique)   (synthesis)  │
-                 └───────────────────────┬──────────────────────────────┘
-                                         │
-                                         ▼
-                          ┌──────────────────────────┐
-                          │      Quality Gate         │
-                          │  (backpressure + rubric)  │
-                          └────────────┬─────────────┘
-                                       │ pass / bounce
-                                  ┌────┴─────┐
-                              pass│          │bounce (refine → retry)
-                                  ▼          │
-                     ┌────────────────┐      │
-                     │   Curator      │◀─────┘
-                     │ (what to keep) │
-                     └───────┬────────┘
-                             │
-                             ▼
-              ┌──────────────────────────────────┐
-              │         Knowledge Store           │
-              │  versioned files + mutation log   │
-              │  lessons + rules + evidence       │
-              └──────────────┬───────────────────┘
-                             │
-              ┌──────────────┴───────────────┐
-              │                              │
-              ▼                              ▼
-     ┌────────────────┐           ┌──────────────────┐
-     │  Hybrid Search │           │  Distill Export  │
-     │ (BM25 + embed) │           │  (training data) │
-     └────────────────┘           └──────────────────┘
-```
-
----
-
-## Features
-
-- **Hybrid semantic search**: BM25 + embeddings fused with Reciprocal Rank Fusion (RRF), plus LLM reranking
-- **Multi-wave research**: Parallel research agents → adversarial critic → synthesis, adapted from the vault system's research pipeline
-- **Backpressure quality gate**: Rejects runs where knowledge delta is below threshold — prevents noise accumulation (from autocontext)
-- **Lesson tracking**: Applicability windowing — lessons age out when they stop being relevant
-- **Evidence-based rules**: Self-improving rules with hit counters and decay. CRITICAL rules never decay.
-- **Heartbeat scheduler**: Configurable task schedule with state/config separation. Avoids OnUnitActiveSec drift.
-- **Model routing**: Frontier (Anthropic) for synthesis, local (Ollama) for retrieval/reranking
-- **Training export**: Validated knowledge → structured training data for fine-tuning
-
----
-
-## Quick Start
-
-Requires [uv](https://docs.astral.sh/uv/).
-
-```bash
-# Clone and install
-git clone https://github.com/vachsark/knowledge-engine
-cd knowledge-engine
-uv sync
-
-# Run a research session
-ke research "transformer attention mechanisms"
-
-# Search existing knowledge
-ke search "attention mechanisms scalability"
-
-# Check status
-ke status
-```
-
-### With a local model (no API key needed)
-
-```bash
-# Pull an Ollama model first
-ollama pull qwen3:8b
-ollama pull qwen3-embedding:0.6b
-
-# Configure
-export KE_DEFAULT_MODEL=local
-export KE_LOCAL_MODEL=qwen3:8b
-
-ke research "topic"
-```
-
-### With Anthropic (higher quality)
-
-```bash
-export ANTHROPIC_API_KEY=sk-...
-export KE_DEFAULT_MODEL=sonnet
-
-ke research "topic" --waves 2 --skeptic
-```
-
----
-
-## Pipeline Flow
-
-```
-ke research "topic"
-    │
-    ├── 1. Pre-flight: search existing knowledge for overlap
-    │       └── Skip or narrow topic if >0.85 similarity
-    │
-    ├── 2. Wave 1: parallel research agents (N agents, M topics)
-    │
-    ├── 3. Wave 1.5: skeptic challenges claims in Wave 1 output
-    │
-    ├── 4. Wave 2: synthesis + dedup of all agent outputs
-    │
-    ├── 5. Quality gate: score against rubric
-    │       ├── Pass (score ≥ threshold) → curator
-    │       └── Bounce → refine prompt → retry (max 3)
-    │
-    ├── 6. Curator: decide what to persist, what to update
-    │
-    └── 7. Persist: versioned note + mutation log entry
-```
-
----
-
-## Benchmarks
-
-Evaluated on [DRB (Deep Research Bench)](https://github.com/deepresearchbench/drb). The pipeline scored RACE 0.5166 across 50 tasks — competitive with Gemini Deep Research and NVIDIA AIQ on report quality. Citation accuracy was 57.8% validity, which is a known weak point.
-
-Read the full benchmark analysis: [Building a Multi-Agent Research Pipeline — Benchmarked on DRB](https://blog.vachsark.com/blog/research-pipeline)
-
-Run your own benchmark:
-
-```bash
-ke benchmark --suite drb --output results/
-```
-
----
-
-## Configuration
-
-Create `ke.yaml` in your project root:
-
-```yaml
-knowledge_dir: ./knowledge
-default_model: sonnet
-local_model: qwen3:8b
-embed_model: qwen3-embedding:0.6b
-
-backpressure_min_delta: 0.005
-max_lessons: 50
-staleness_window: 10
-token_budget_daily: 500000
-```
-
-Or use environment variables (all prefixed `KE_`):
-
-```bash
-KE_KNOWLEDGE_DIR=./knowledge
-KE_DEFAULT_MODEL=sonnet
-KE_ANTHROPIC_API_KEY=sk-...
-```
-
----
-
-## Project Layout
-
-```
-src/knowledge_engine/
-├── config/         # Pydantic settings
-├── search/         # Hybrid BM25 + embeddings + RRF
-├── research/       # Multi-wave pipeline
-├── evaluation/     # Backpressure gate + curator
-├── knowledge/      # Versioned store + lessons + rules
-├── scheduler/      # Heartbeat + budgeting
-├── models/         # Model router (frontier / local)
-└── distill/        # Training data export
-```
-
----
+**Do I need to be technical?**
+You need to install one CLI tool and clone this repo. After that, you just type in plain English.
 
 ## Credits
 
-This project wouldn't exist without:
-
-- **[autocontext](https://github.com/greyhaven-ai/autocontext)** by greyhaven-ai — the evaluation loop architecture, backpressure gating, lesson management, and knowledge curation patterns. Their system showed me what disciplined knowledge persistence looks like.
-- **[autoresearch](https://x.com/karpathy/status/2029701092347630069)** by Andrej Karpathy — the `program.md` pattern, single-metric evaluation, and the idea that agents should run experiments autonomously overnight.
-- **[vault-search](https://github.com/vachsark/vault-search)** — hybrid semantic search + knowledge graph extraction. Powers pre-flight dedup, knowledge search, and entity/relationship context.
-- **[autoknowledge](https://github.com/vachsark/autoknowledge)** — the predecessor project where the multi-wave research pipeline was developed and benchmarked.
-
----
+Built on [vault-search](https://github.com/vachsark/vault-search) for semantic search and knowledge graph extraction. Research pipeline patterns inspired by [autoresearch](https://github.com/karpathy/autoresearch) and [autocontext](https://github.com/greyhaven-ai/autocontext).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT
