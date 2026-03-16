@@ -21,10 +21,11 @@ Create the folder structure based on their choice. Each project gets its own `so
 
 1. **Ask which project** this research belongs to (if multiple projects exist)
 2. **Search** for scholarly papers using WebSearch (Google Scholar, Semantic Scholar, arXiv, PubMed)
-3. **Save each source** as a structured file in the project's `sources/` folder (format below)
-4. **Every source MUST have authors.** If you can't find authors, search harder. Never save `authors: []`.
-5. **Export**: Run `python3 scripts/export-bibtex.py <project>/sources` and `python3 scripts/export-csv.py <project>/sources`
-6. **Report**: Tell the user what you found, organized by type (foundational, original studies, reviews, meta-analyses)
+3. **Follow citation chains**: For the most important papers found, search for "cited by" and look at their references. Go 2 hops deep to find foundational and frontier papers the user would never find on their own.
+4. **Save each source** as a structured file in the project's `sources/` folder (format below)
+5. **Every source MUST have authors.** If you can't find authors, search harder. Never save `authors: []`.
+6. **Export**: Run all three export scripts (bibtex, csv, viewer)
+7. **Report**: Tell the user what you found, organized by type AND show the citation chain (which papers built on which)
 
 ## Folder Structure
 
@@ -70,6 +71,9 @@ pdf_url: "https://..."
 type: original-study
 relevance: high
 research_question: "the user's original question"
+cites: ["source-001"]
+cited_by: ["source-005", "source-008"]
+discovered_via: "direct"
 ---
 
 # Exact Paper Title
@@ -81,7 +85,15 @@ research_question: "the user's original question"
 ## Why This Is Relevant
 
 <1-2 sentences on why this matters for the research question>
+
+## Citation Chain
+
+<How this paper connects to others in the collection. Example:
+"This paper builds on source-001 (Smith 2015) and was extended by
+source-005 (Jones 2020) which added longitudinal data.">
 ```
+
+The `cites` field lists source files this paper references. The `cited_by` field lists source files that cite this paper. The `discovered_via` field tracks how we found it: `direct` (from initial search), `reference` (found in another paper's references), or `cited-by` (found via "cited by" search). Update these fields as you discover connections between papers.
 
 Valid types: `original-study`, `meta-analysis`, `systematic-review`, `review`, `foundational`, `book-chapter`
 Valid relevance: `high`, `medium`, `low`

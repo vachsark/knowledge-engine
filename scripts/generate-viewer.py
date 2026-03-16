@@ -63,6 +63,15 @@ def generate_html(sources_dir, output_path):
         abstract = extract_section(body, "Abstract")
         relevance_note = extract_section(body, "Why This Is Relevant")
         key_findings = extract_section(body, "Key Findings")
+        citation_chain = extract_section(body, "Citation Chain")
+
+        # Parse cites/cited_by arrays
+        cites = fm.get("cites", [])
+        cited_by = fm.get("cited_by", [])
+        if isinstance(cites, str):
+            cites = [c.strip() for c in cites.strip("[]").split(",") if c.strip()]
+        if isinstance(cited_by, str):
+            cited_by = [c.strip() for c in cited_by.strip("[]").split(",") if c.strip()]
 
         papers.append({
             "file": md_file.name,
@@ -75,9 +84,13 @@ def generate_html(sources_dir, output_path):
             "type": fm.get("type", ""),
             "relevance": fm.get("relevance", ""),
             "research_question": fm.get("research_question", ""),
+            "discovered_via": fm.get("discovered_via", "direct"),
+            "cites": cites,
+            "cited_by": cited_by,
             "abstract": abstract,
             "relevance_note": relevance_note,
             "key_findings": key_findings,
+            "citation_chain": citation_chain,
         })
 
     if not papers:
@@ -146,6 +159,18 @@ a:hover { text-decoration: underline; }
 .badge.relevance-high { background: #052e16; color: #4ade80; }
 .badge.relevance-medium { background: #422006; color: #fb923c; }
 .badge.relevance-low { background: #450a0a; color: #f87171; }
+.badge.discovered-direct { background: #1e293b; color: #94a3b8; }
+.badge.discovered-reference { background: #172554; color: #60a5fa; }
+.badge.discovered-cited-by { background: #4a1d96; color: #c084fc; }
+
+.citation-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.citation-link {
+  font-size: 11px; padding: 2px 8px; border-radius: 4px;
+  background: #27272a; color: #a1a1aa; cursor: pointer; border: none;
+}
+.citation-link:hover { background: #3f3f46; color: #e4e4e7; }
+.citation-link.cites { border-left: 2px solid #60a5fa; }
+.citation-link.cited-by { border-left: 2px solid #c084fc; }
 
 .section { margin-top: 10px; }
 .section-label {
@@ -206,6 +231,12 @@ a:hover { text-decoration: underline; }
     <option value="declined">Declined</option>
     <option value="pending">Pending</option>
   </select>
+  <select id="filter-discovery">
+    <option value="">All sources</option>
+    <option value="direct">Direct search</option>
+    <option value="reference">Found in references</option>
+    <option value="cited-by">Found via "cited by"</option>
+  </select>
   <select id="sort-by">
     <option value="relevance">Sort: Relevance</option>
     <option value="year-desc">Sort: Newest</option>
@@ -247,6 +278,7 @@ function getFilteredPapers() {
   const typeFilter = document.getElementById('filter-type').value;
   const relFilter = document.getElementById('filter-relevance').value;
   const statusFilter = document.getElementById('filter-status').value;
+  const discoveryFilter = document.getElementById('filter-discovery').value;
   const sortBy = document.getElementById('sort-by').value;
 
   let filtered = papers.filter(p => {
@@ -255,6 +287,7 @@ function getFilteredPapers() {
         !p.abstract.toLowerCase().includes(search)) return false;
     if (typeFilter && p.type !== typeFilter) return false;
     if (relFilter && p.relevance !== relFilter) return false;
+    if (discoveryFilter && (p.discovered_via || 'direct') !== discoveryFilter) return false;
     if (statusFilter) {
       const d = decisions[p.file] || 'pending';
       if (d !== statusFilter) return false;
@@ -300,7 +333,7 @@ function render() {
     const isDeclined = decision === 'declined';
     const authorsStr = Array.isArray(p.authors) ? p.authors.join(', ') : (p.authors || 'Unknown');
 
-    return '<div class="paper ' + (isDeclined ? 'declined' : '') + '">' +
+    return '<div class="paper ' + (isDeclined ? 'declined' : '') + '" data-file="' + p.file + '">' +
       '<div class="paper-header">' +
         '<div>' +
           '<div class="paper-title">' + escapeHtml(p.title) + '</div>' +
@@ -318,8 +351,11 @@ function render() {
       '<div class="badges">' +
         (p.type ? '<span class="badge type">' + p.type + '</span>' : '') +
         (p.relevance ? '<span class="badge relevance-' + p.relevance + '">' + p.relevance + ' relevance</span>' : '') +
+        (p.discovered_via && p.discovered_via !== 'direct' ? '<span class="badge discovered-' + p.discovered_via + '">found via ' + p.discovered_via.replace('-', ' ') + '</span>' : '') +
       '</div>' +
       (p.relevance_note ? '<div class="section"><div class="section-label">Why Relevant</div><div class="section-content">' + escapeHtml(p.relevance_note) + '</div></div>' : '') +
+      (p.citation_chain ? '<div class="section"><div class="section-label">Citation Chain</div><div class="section-content">' + escapeHtml(p.citation_chain) + '</div></div>' : '') +
+      buildCitationLinks(p) +
       (p.abstract ? '<div class="section"><div class="section-label">Abstract</div><div class="section-content abstract">' + escapeHtml(p.abstract) + '</div></div>' : '') +
       (p.key_findings ? '<div class="section"><div class="section-label">Key Findings</div><div class="section-content">' + escapeHtml(p.key_findings) + '</div></div>' : '') +
       '<div class="links">' +
@@ -336,6 +372,39 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function buildCitationLinks(p) {
+  const cites = p.cites || [];
+  const citedBy = p.cited_by || [];
+  if (cites.length === 0 && citedBy.length === 0) return '';
+
+  let html = '<div class="section"><div class="section-label">Connected Papers</div><div class="citation-links">';
+
+  cites.forEach(ref => {
+    const linked = papers.find(pp => pp.file === ref + '.md' || pp.file === ref);
+    const label = linked ? linked.title.substring(0, 40) + '...' : ref;
+    html += '<button class="citation-link cites" onclick="scrollToSource(\'' + ref + '\')" title="This paper cites: ' + (linked ? escapeHtml(linked.title) : ref) + '">cites: ' + escapeHtml(label) + '</button>';
+  });
+
+  citedBy.forEach(ref => {
+    const linked = papers.find(pp => pp.file === ref + '.md' || pp.file === ref);
+    const label = linked ? linked.title.substring(0, 40) + '...' : ref;
+    html += '<button class="citation-link cited-by" onclick="scrollToSource(\'' + ref + '\')" title="Cited by: ' + (linked ? escapeHtml(linked.title) : ref) + '">cited by: ' + escapeHtml(label) + '</button>';
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+function scrollToSource(ref) {
+  const file = ref.endsWith('.md') ? ref : ref + '.md';
+  const el = document.querySelector('[data-file="' + file + '"]');
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.style.borderColor = '#60a5fa';
+    setTimeout(() => { el.style.borderColor = ''; }, 2000);
+  }
+}
+
 // Populate type filter
 const types = [...new Set(papers.map(p => p.type).filter(Boolean))].sort();
 const typeSelect = document.getElementById('filter-type');
@@ -350,6 +419,7 @@ document.getElementById('search').addEventListener('input', render);
 document.getElementById('filter-type').addEventListener('change', render);
 document.getElementById('filter-relevance').addEventListener('change', render);
 document.getElementById('filter-status').addEventListener('change', render);
+document.getElementById('filter-discovery').addEventListener('change', render);
 document.getElementById('sort-by').addEventListener('change', render);
 
 render();
