@@ -16,6 +16,27 @@ echo -e "${GREEN}${BOLD}  Knowledge Engine — Academic Research Assistant${NC}"
 echo -e "${DIM}  github.com/vachsark/knowledge-engine${NC}"
 echo ""
 
+# ── Check for git ───────────────────────────────────────────────────
+if ! command -v git &>/dev/null; then
+    echo -e "${YELLOW}git not found. Installing...${NC}"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo -e "${CYAN}This will prompt you to install Xcode Command Line Tools. Click 'Install' when asked.${NC}"
+        xcode-select --install 2>/dev/null || true
+        echo -e "${YELLOW}After installation finishes, re-run this script.${NC}"
+        exit 0
+    elif command -v apt &>/dev/null; then
+        sudo apt update && sudo apt install -y git
+    elif command -v pacman &>/dev/null; then
+        sudo pacman -S --noconfirm git
+    elif command -v dnf &>/dev/null; then
+        sudo dnf install -y git
+    else
+        echo -e "${YELLOW}Please install git: https://git-scm.com/downloads${NC}"
+        exit 1
+    fi
+fi
+echo -e "${GREEN}  ✓ git found${NC}"
+
 # ── Check for Node.js ───────────────────────────────────────────────
 if ! command -v node &>/dev/null; then
     echo -e "${YELLOW}Node.js not found. Installing...${NC}"

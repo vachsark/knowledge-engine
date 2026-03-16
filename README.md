@@ -16,7 +16,7 @@ Open your **terminal** first:
 - **Windows**: Open **PowerShell** (search "PowerShell" in Start menu)
 - **Linux**: Open your terminal app (Ctrl+Alt+T on most systems)
 
-### Option A: One-line install (easiest)
+### Option A: One-line install (Mac and Linux — easiest)
 
 Paste this into your terminal and press Enter:
 
@@ -25,6 +25,8 @@ curl -sL https://raw.githubusercontent.com/vachsark/knowledge-engine/master/inst
 ```
 
 It will install everything you need, ask which AI tool you want, and set up the project. When it's done, follow the instructions it prints.
+
+**Windows users**: The one-line installer doesn't work on Windows yet. Use Option B below, or install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) (Windows Subsystem for Linux) first and then use the one-liner inside WSL.
 
 ### Option B: Manual setup
 
