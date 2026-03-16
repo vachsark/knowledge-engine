@@ -195,15 +195,22 @@ No GPU needed. No local models. No additional software.
 
 ## Cost
 
-This uses your existing AI subscription credits:
+**This tool has no cost of its own.** It uses your existing AI subscription -- the same one you already use for Claude, Gemini, or ChatGPT. There are no API keys, no separate billing, no hidden charges.
 
-- **Find mode**: ~$0.30 per topic
-- **Summarize mode**: ~$0.80 per topic
-- **Analyze mode**: ~$2.00 per topic
+Approximate usage per research session from your subscription:
+
+- **Find mode**: ~$0.30 worth of usage
+- **Summarize mode**: ~$0.80 worth of usage
+- **Analyze mode**: ~$2.00 worth of usage
+
+If you have an unlimited plan (many school plans are), there's no additional cost at all. If you're on a usage-based plan, these amounts come out of your existing credits.
 
 Most students get free or discounted access through their school's Google Workspace, GitHub Education, or university AI programs.
 
 ## FAQ
+
+**Will this charge me?**
+No. There are no API keys or separate billing in this tool. It runs through your existing CLI subscription (Claude Code, Gemini, or Codex). If your school plan is unlimited, it costs nothing extra.
 
 **Is this cheating?**
 No. This finds real papers -- it doesn't write your essay. It's a smarter version of Google Scholar. You still read the papers, understand them, and write your own analysis.
