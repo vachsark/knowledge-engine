@@ -26,6 +26,8 @@ curl -sL https://raw.githubusercontent.com/vachsark/knowledge-engine/master/inst
 
 It will install everything you need, ask which AI tool you want, and set up the project. When it's done, follow the instructions it prints.
 
+> **Want to see what it does first?** Read [install.sh](install.sh) — it's ~140 lines and only installs Node.js, an AI CLI, and clones this repo. Nothing hidden.
+
 **Windows users**: The one-line installer doesn't work on Windows yet. Use Option B below, or install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) (Windows Subsystem for Linux) first and then use the one-liner inside WSL.
 
 ### Option B: Manual setup
@@ -292,6 +294,15 @@ Approximate usage per research session from your subscription:
 If you have an unlimited plan (many school plans are), there's no additional cost at all. If you're on a usage-based plan, these amounts come out of your existing credits.
 
 Most students get free or discounted access through their school's Google Workspace, GitHub Education, or university AI programs.
+
+## Privacy and trust
+
+- **No data collection.** Nothing is sent to us. No server, no analytics, no telemetry.
+- **No API keys.** Uses your existing CLI subscription only. We never see your credentials.
+- **No file access outside this folder.** The AI works within this project directory only.
+- **Fully open source.** ~1,400 lines of code total. You can read all of it in 15 minutes.
+
+See [SECURITY.md](SECURITY.md) for the full breakdown of what every file does.
 
 ## FAQ
 
