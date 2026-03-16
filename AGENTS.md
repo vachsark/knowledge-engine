@@ -142,7 +142,14 @@ Output:
 - `sources.csv` -- for Google Sheets, Excel, Notion
 - `index.html` -- open in browser to view, search, filter, and approve/decline papers
 
-After generating, tell the user: "Open index.html in your browser to see your papers. You can approve or decline each one. Ask me to update or customize the page anytime."
+After generating, ALWAYS print the full clickable file path to the viewer so the user can open it directly. Example:
+
+> "Your papers are ready! Open the viewer:
+> file:///Users/username/knowledge-engine/index.html
+>
+> You can approve or decline each paper. Ask me to update or customize the page anytime."
+
+Use the actual absolute path on their system (get it from pwd). Do this every time you generate or update the viewer.
 
 When the user asks to update the viewer after new research, re-run `generate-viewer.py` and tell them to refresh. Their approve/decline decisions are preserved (stored in browser localStorage). The user can ask you to customize the page -- colors, layout, sections -- just edit the generated index.html or the template in generate-viewer.py.
 
