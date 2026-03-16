@@ -1,69 +1,97 @@
-# knowledge-engine — Claude Code Conventions
+# Academic Research Assistant
 
-## Quick orientation
+This project helps you find scholarly papers and original studies for your research.
 
-- **Entry point**: `src/knowledge_engine/cli.py` — all `ke` commands defined here
-- **Pipeline flow**: `research/pipeline.py` orchestrates everything; read it first
-- **Key abstractions**: `evaluation/gate.py` (backpressure), `knowledge/store.py` (persistence), `scheduler/heartbeat.py` (scheduling)
-- **Settings**: `config/settings.py` — all config lives here, env prefix `KE_`
+## When the user asks to research a topic
 
-## Development setup
+1. **Find papers**: Use WebSearch to find scholarly sources (Google Scholar, Semantic Scholar, arXiv, PubMed)
+2. **Save each source** as a file in `sources/` using the format below
+3. **Export**: Run `python3 scripts/export-bibtex.py sources` and `python3 scripts/export-csv.py sources`
+4. **Report**: Tell the user what you found and where the files are
 
-```bash
-uv sync --all-extras
-uv run pytest
-uv run ruff check src/
-uv run mypy src/
+## What to prioritize
+
+- Original studies with empirical data
+- Foundational/seminal papers
+- Recent meta-analyses and systematic reviews
+- Cross-disciplinary perspectives
+
+Do NOT prioritize news articles, blog posts, or non-peer-reviewed content.
+
+## Source file format
+
+Save each paper as `sources/source-NNN.md`:
+
+```markdown
+---
+title: "Exact Paper Title"
+authors: ["First Author", "Second Author"]
+year: 2024
+journal: "Journal Name"
+doi: "10.xxxx/xxxxx"
+pdf_url: "https://..."
+type: original-study
+relevance: high
+research_question: "the user's question"
+---
+
+# Exact Paper Title
+
+## Abstract
+
+<the paper's actual abstract>
+
+## Why This Is Relevant
+
+<1-2 sentences>
 ```
 
-## Module ownership
+Valid types: `original-study`, `meta-analysis`, `systematic-review`, `review`, `foundational`, `book-chapter`
 
-| Module        | Inspiration                       | Responsibility             |
-| ------------- | --------------------------------- | -------------------------- |
-| `search/`     | vault-search hybrid retrieval     | BM25 + embed + RRF         |
-| `research/`   | vault research pipeline (waves)   | Multi-wave orchestration   |
-| `evaluation/` | autocontext curator + gate        | Quality gating, curation   |
-| `knowledge/`  | autocontext versioned persistence | Store, lessons, rules      |
-| `scheduler/`  | vault heartbeat system            | Scheduled task execution   |
-| `models/`     | vault model routing table         | Frontier vs local dispatch |
-| `distill/`    | original                          | Training data export       |
+## Critical rules
 
-## Patterns to follow
+- **NEVER fabricate citations.** Only include papers you found via search. Leave DOI empty if you can't find it.
+- **NEVER invent abstracts.** Use the real abstract or write "Abstract not available."
+- Find at least 10 sources per topic. Aim for 15-20.
 
-**Settings access**: Always inject `Settings` via parameter — never import from module level in tests.
+## Modes (user can request)
 
-**Model calls**: Always route through `models/router.py`, never call Ollama/Anthropic directly from business logic.
+| Request                    | What to do                                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| "find papers about X"      | Find + save citations (Abstract + Why Relevant only)                                               |
+| "summarize papers about X" | Find + save + add Key Findings section (3-5 bullets)                                               |
+| "analyze papers about X"   | Find + summarize + create `analysis/` with themes.md, gaps.md, timeline.md, methodology-summary.md |
+| "review my sources"        | Use the `research-critic` agent to verify citations exist                                          |
+| "check relevance"          | Use the `research-skeptic` agent to re-evaluate relevance ratings                                  |
 
-**Knowledge writes**: Always go through `knowledge/store.py` — never write files directly. The mutation log must stay consistent.
+## Available agents
 
-**Gate bypass**: Never skip the quality gate in production paths. The `force=True` parameter exists only for tests.
+- `research-team` — finds and saves papers (primary)
+- `research-critic` — verifies citations are real, fixes errors
+- `research-skeptic` — checks relevance ratings are accurate
+- `research-analyzer` — cross-paper analysis (themes, gaps, timeline)
 
-**Ollama num_ctx**: Always pass `num_ctx` to Ollama API calls. Without it, the Vulkan runner hangs when prompts exceed the default 4096 tokens.
+## Search index (optional, requires Ollama)
 
-## Adding a new research wave
+If the user has Ollama running, you can search existing sources:
 
-1. Create the wave function in `research/pipeline.py`
-2. Add its agent prompt to `agents/`
-3. Wire it into `ResearchPipeline.run()` with a named stage
-4. Add a test stub in `tests/test_research.py`
+```bash
+python3 vault-search.py "query" . --top 5
+```
 
-## Adding a new evaluation dimension
+This checks what's already been found to avoid duplicates.
 
-1. Add the dimension to `templates/evaluation-rubric.yaml`
-2. Update `evaluation/rubric.py` to parse it
-3. Update `evaluation/gate.py` scoring logic if weights change
+## Exports
 
-## Pre-commit checklist
+After finding sources, always run:
 
-- [ ] `uv run ruff check src/` passes
-- [ ] `uv run mypy src/` passes
-- [ ] `uv run pytest` passes
-- [ ] Any new public function has a docstring and type hints
-- [ ] No hardcoded model names — use `settings.default_model`
-- [ ] No direct file writes outside `knowledge/store.py`
+```bash
+python3 scripts/export-bibtex.py sources    # → bibliography.bib
+python3 scripts/export-csv.py sources       # → sources.csv
+```
 
-## What's a scaffold
+These let the user import into Zotero, Overleaf, Google Sheets, etc.
 
-Most `raise NotImplementedError` in the current source are intentional scaffolding.
-The interfaces are designed — implementations come later.
-Don't remove the `NotImplementedError` stubs; replace them with real code when implementing.
+## Terminal alternative
+
+Users can also run `./research.sh "topic"` from the terminal. This script automates the full flow including pre-flight search, agent invocation, and exports.
