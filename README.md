@@ -61,17 +61,41 @@ The first time, it will ask how you want to organize your files (by project, top
 You: "Research [topic]"
   |
   v
-AI searches Google Scholar, PubMed, Semantic Scholar, arXiv
+Phase 1: AI searches Google Scholar, PubMed, Semantic Scholar, arXiv
   |
   v
-Saves 10-20 papers as structured markdown files
+Phase 2: Follows citation chains — "cited by" and references — 2 hops deep
+         Finds foundational papers and frontier research you'd never find directly
   |
   v
-Exports bibliography.bib + sources.csv
+Phase 3: Connects the chain — maps which papers cite which
   |
   v
-You: upload to NotebookLM, import to Zotero, or read directly
+Saves 15-25 papers as structured files + citation map
+  |
+  v
+Generates index.html (open in browser), bibliography.bib, sources.csv
+  |
+  v
+You: browse papers, approve/decline, export to NotebookLM/Zotero/Overleaf
 ```
+
+### Citation chain discovery
+
+This is the key differentiator. Instead of just showing you the first page of Google Scholar results, the AI:
+
+1. Finds an important paper on your topic
+2. Looks at what that paper cites (goes backward to find **foundational work**)
+3. Looks at what cites that paper (goes forward to find **frontier research**)
+4. Repeats for the most important papers, going 2 hops deep
+
+This is how it finds original studies and seminal papers that are buried 2-3 citation layers deep — papers you'd never find through direct search alone.
+
+Each paper is tagged with how it was discovered:
+
+- **direct** — found through search
+- **reference** — found in another paper's references (foundational)
+- **cited-by** — found via "cited by" search (frontier)
 
 ## Project organization
 
@@ -167,7 +191,9 @@ After research completes, open `index.html` in your browser. You get:
 - All your papers in a clean, searchable interface
 - Filter by type (original study, meta-analysis, review, etc.)
 - Filter by relevance (high, medium, low)
+- Filter by discovery method (direct search, found in references, found via "cited by")
 - **Approve/decline** each paper -- decisions are saved automatically
+- **Citation links** -- click to jump between connected papers
 - Sort by relevance, year, or title
 - Direct links to DOI and PDF for each paper
 
