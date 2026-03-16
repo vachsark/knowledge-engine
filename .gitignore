@@ -6,6 +6,8 @@ vault-graph.py
 # Research output (user-specific)
 sources/
 analysis/
+projects/
 bibliography.bib
 sources.csv
+index.html
 Knowledge/

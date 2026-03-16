@@ -248,8 +248,9 @@ a:hover { text-decoration: underline; }
 <div id="papers"></div>
 
 <div class="footer">
-  <p>Approve or decline papers to track your review. Decisions are saved in your browser.</p>
+  <p>Approve or decline papers, then click "Export Decisions" to save. Your AI assistant can read this file to learn your preferences.</p>
   <p>Ask your AI assistant to update this page after adding new research.</p>
+  <button class="btn" onclick="exportDecisions()" style="margin-top:8px;">Export Decisions</button>
 </div>
 
 <script>
@@ -393,6 +394,29 @@ function buildCitationLinks(p) {
 
   html += '</div></div>';
   return html;
+}
+
+function exportDecisions() {
+  const output = {
+    exported_at: new Date().toISOString(),
+    approved: [],
+    declined: [],
+    pending: []
+  };
+  papers.forEach(p => {
+    const d = decisions[p.file];
+    const entry = { file: p.file, title: p.title, year: p.year, doi: p.doi };
+    if (d === 'approved') output.approved.push(entry);
+    else if (d === 'declined') output.declined.push(entry);
+    else output.pending.push(entry);
+  });
+  const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'decisions.json';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function scrollToSource(ref) {

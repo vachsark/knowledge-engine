@@ -10,7 +10,26 @@ No AI-generated essays. No fake citations. Just real papers, organized and ready
 
 ## Quick start
 
-### 1. Install an AI CLI (pick one)
+### 1. Install Node.js (if you don't have it)
+
+**Mac:**
+
+```bash
+brew install node
+```
+
+If you don't have Homebrew: visit [brew.sh](https://brew.sh) first, or download Node.js directly from [nodejs.org](https://nodejs.org).
+
+**Windows:** Download from [nodejs.org](https://nodejs.org) and run the installer.
+
+**Linux:**
+
+```bash
+sudo apt install nodejs npm    # Ubuntu/Debian
+sudo pacman -S nodejs npm      # Arch
+```
+
+### 2. Install an AI CLI (pick one)
 
 **Claude Code** (Anthropic):
 
@@ -21,7 +40,7 @@ npm install -g @anthropic-ai/claude-code
 **Gemini CLI** (Google -- free with Google Workspace/student accounts):
 
 ```bash
-npm install -g @anthropic-ai/gemini-cli
+npx https://github.com/google-gemini/gemini-cli
 ```
 
 Visit [github.com/google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli) for the latest install instructions.
@@ -34,16 +53,14 @@ npm install -g @openai/codex
 
 Visit [github.com/openai/codex](https://github.com/openai/codex) for the latest install instructions.
 
-If you don't have npm, install [Node.js](https://nodejs.org) first.
-
-### 2. Clone and open
+### 3. Clone and open
 
 ```bash
 git clone https://github.com/vachsark/knowledge-engine
 cd knowledge-engine
 ```
 
-### 3. Start your CLI and ask for research
+### 4. Start your CLI and ask for research
 
 ```bash
 claude          # or: gemini, codex

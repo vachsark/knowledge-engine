@@ -145,3 +145,11 @@ Output:
 After generating, tell the user: "Open index.html in your browser to see your papers. You can approve or decline each one. Ask me to update or customize the page anytime."
 
 When the user asks to update the viewer after new research, re-run `generate-viewer.py` and tell them to refresh. Their approve/decline decisions are preserved (stored in browser localStorage). The user can ask you to customize the page -- colors, layout, sections -- just edit the generated index.html or the template in generate-viewer.py.
+
+## Reading user decisions
+
+If the user has exported their decisions from the viewer (via the "Export Decisions" button), there will be a `decisions.json` file. Read it to understand what they approved/declined. Use this to:
+
+- Find more papers similar to approved ones
+- Avoid topics related to declined ones
+- Understand their research preferences
