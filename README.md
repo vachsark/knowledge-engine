@@ -10,13 +10,25 @@ No AI-generated essays. No fake citations. Just real papers, organized and ready
 
 ## Quick start
 
-Everything below happens in your **terminal** (the command line app on your computer):
+Open your **terminal** first:
 
 - **Mac**: Open **Terminal** (search "Terminal" in Spotlight, or find it in Applications > Utilities)
 - **Windows**: Open **PowerShell** (search "PowerShell" in Start menu)
 - **Linux**: Open your terminal app (Ctrl+Alt+T on most systems)
 
-All the commands below are typed into the terminal and run by pressing Enter.
+### Option A: One-line install (easiest)
+
+Paste this into your terminal and press Enter:
+
+```bash
+curl -sL https://raw.githubusercontent.com/vachsark/knowledge-engine/master/install.sh | bash
+```
+
+It will install everything you need, ask which AI tool you want, and set up the project. When it's done, follow the instructions it prints.
+
+### Option B: Manual setup
+
+If you prefer to do it step by step:
 
 ### 1. Install Node.js (if you don't have it)
 
