@@ -66,11 +66,17 @@ cd knowledge-engine
 claude          # or: gemini, codex
 ```
 
-Then just type what you need:
+**Important first message:** Before asking for research, tell your AI to read the project folder:
 
-> "Find me papers about the effects of social media on adolescent mental health"
+> "Read this project's instructions and then find me papers about the effects of social media on adolescent mental health"
 
-The first time, it will ask how you want to organize your files (by project, topic, class, or simple).
+Or simply:
+
+> "Read the project files first, then help me research [your topic]"
+
+This ensures the AI uses the structured research pipeline instead of doing a basic web search. After the first time, it will remember for the rest of the session.
+
+The first time, it will also ask how you want to organize your files (by project, topic, class, or simple).
 
 ## How it works
 
