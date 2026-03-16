@@ -10,6 +10,14 @@ No AI-generated essays. No fake citations. Just real papers, organized and ready
 
 ## Quick start
 
+Everything below happens in your **terminal** (the command line app on your computer):
+
+- **Mac**: Open **Terminal** (search "Terminal" in Spotlight, or find it in Applications > Utilities)
+- **Windows**: Open **PowerShell** (search "PowerShell" in Start menu)
+- **Linux**: Open your terminal app (Ctrl+Alt+T on most systems)
+
+All the commands below are typed into the terminal and run by pressing Enter.
+
 ### 1. Install Node.js (if you don't have it)
 
 **Mac:**
