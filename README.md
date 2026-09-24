@@ -34,7 +34,7 @@ It will install everything you need, ask which AI tool you want, and set up the 
 
 If you prefer to do it step by step:
 
-### 1. Install Node.js (if you don't have it)
+### 1. Install Node.js 22 or newer (if you don't have it)
 
 **Mac:**
 
@@ -64,7 +64,7 @@ npm install -g @anthropic-ai/claude-code
 **Gemini CLI** (Google -- free with Google Workspace/student accounts):
 
 ```bash
-npx https://github.com/google-gemini/gemini-cli
+npm install -g @google/gemini-cli
 ```
 
 Visit [github.com/google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli) for the latest install instructions.
@@ -275,7 +275,7 @@ If you prefer the command line over the interactive CLI:
 ## System requirements
 
 - **Any computer** (Mac, Windows, Linux)
-- **Node.js** (for installing the CLI)
+- **Node.js 22+** (for installing the CLI -- Claude Code needs 22+, Gemini CLI needs 20+)
 - **Python 3.10+** (for export scripts -- comes pre-installed on Mac/Linux)
 - **One AI CLI** (Claude Code, Gemini CLI, or Codex)
 

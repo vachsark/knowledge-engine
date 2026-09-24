@@ -54,6 +54,14 @@ detect_cli() {
     echo -e "${DIM}Using: $CLI_NAME${NC}"
 }
 
+# ── Agent file body (frontmatter stripped), for CLIs without --agent ──
+agent_instructions() {
+    local agent_file="$SCRIPT_DIR/.claude/agents/${1}.md"
+    if [[ -f "$agent_file" ]]; then
+        awk 'NR==1 && /^---$/ {fm=1; next} fm && /^---$/ {fm=0; next} !fm' "$agent_file"
+    fi
+}
+
 # ── Run agent via detected CLI ──────────────────────────────────────
 run_agent() {
     local agent="$1"
@@ -67,21 +75,13 @@ run_agent() {
             claude --agent "$agent" -p --permission-mode bypassPermissions --max-budget-usd "$budget" "$prompt"
             ;;
         gemini)
-            # Gemini CLI uses system prompt from agent file
-            local agent_file="$SCRIPT_DIR/.claude/agents/${agent}.md"
-            local system_prompt=""
-            if [[ -f "$agent_file" ]]; then
-                system_prompt=$(sed '1,/^---$/d; /^---$/,$d' "$agent_file" 2>/dev/null || cat "$agent_file")
-            fi
-            gemini -s "$system_prompt" "$prompt"
+            # Gemini CLI has no system-prompt flag, so prepend the agent instructions.
+            # --skip-trust: otherwise headless mode drops yolo back to "default" and can't write files.
+            gemini --skip-trust --approval-mode yolo -p "$(agent_instructions "$agent")"$'\n\n'"$prompt"
             ;;
         codex)
-            local agent_file="$SCRIPT_DIR/.claude/agents/${agent}.md"
-            if [[ -f "$agent_file" ]]; then
-                codex --system-prompt "$(cat "$agent_file")" "$prompt"
-            else
-                codex "$prompt"
-            fi
+            # Codex has no system-prompt flag either; `codex exec` is its non-interactive mode.
+            codex exec --sandbox workspace-write "$(agent_instructions "$agent")"$'\n\n'"$prompt"
             ;;
     esac
 }
@@ -101,7 +101,7 @@ preflight() {
     # Check if we already have sources on this topic
     if ls "$SOURCES_DIR"/source-*.md &>/dev/null; then
         local existing
-        existing=$(grep -l "$topic" "$SOURCES_DIR"/source-*.md 2>/dev/null | wc -l)
+        existing=$(grep -l "$topic" "$SOURCES_DIR"/source-*.md 2>/dev/null | wc -l || true)
         if [[ "$existing" -gt 0 ]]; then
             echo -e "${DIM}Found $existing existing sources related to this topic.${NC}"
         fi
@@ -151,7 +151,7 @@ research_topic() {
 
     # Count existing sources to set numbering
     local next_num
-    next_num=$(( $(ls "$SOURCES_DIR"/source-*.md 2>/dev/null | wc -l) + 1 ))
+    next_num=$(( $(ls "$SOURCES_DIR"/source-*.md 2>/dev/null | wc -l || true) + 1 ))
 
     # Build the task prompt
     local mode_instructions=""
@@ -252,7 +252,7 @@ Each file should cite specific papers by title and be useful for a literature re
 
 
     local source_count
-    source_count=$(ls "$SOURCES_DIR"/source-*.md 2>/dev/null | wc -l)
+    source_count=$(ls "$SOURCES_DIR"/source-*.md 2>/dev/null | wc -l || true)
     echo ""
     echo -e "${GREEN}${BOLD}Done! Found $source_count sources.${NC}"
 }
