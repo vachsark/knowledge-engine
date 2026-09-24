@@ -6,24 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-
-def parse_frontmatter(content):
-    """Parse YAML frontmatter from markdown content."""
-    if not content.startswith("---"):
-        return {}
-    end = content.find("---", 3)
-    if end == -1:
-        return {}
-    fm = {}
-    for line in content[3:end].strip().split("\n"):
-        if ":" in line:
-            key, _, val = line.partition(":")
-            key = key.strip()
-            val = val.strip().strip('"').strip("'")
-            if val.startswith("[") and val.endswith("]"):
-                val = [v.strip().strip('"').strip("'") for v in val[1:-1].split(",")]
-            fm[key] = val
-    return fm
+from frontmatter import parse_frontmatter
 
 
 def main():
@@ -38,7 +21,7 @@ def main():
     rows = []
     for md_file in sorted(sources_path.glob("source-*.md")):
         content = md_file.read_text(encoding="utf-8", errors="replace")
-        fm = parse_frontmatter(content)
+        fm, _ = parse_frontmatter(content)
         if not fm.get("title"):
             continue
 

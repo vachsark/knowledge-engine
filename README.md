@@ -300,7 +300,7 @@ Most students get free or discounted access through their school's Google Worksp
 - **No data collection.** Nothing is sent to us. No server, no analytics, no telemetry.
 - **No API keys.** Uses your existing CLI subscription only. We never see your credentials.
 - **No file access outside this folder.** The AI works within this project directory only.
-- **Fully open source.** ~1,400 lines of code total. You can read all of it in 15 minutes.
+- **Fully open source.** ~1,600 lines of code total. You can read all of it in 15 minutes.
 
 See [SECURITY.md](SECURITY.md) for the full breakdown of what every file does.
 

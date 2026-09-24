@@ -6,25 +6,26 @@ import re
 import sys
 from pathlib import Path
 
+from frontmatter import parse_frontmatter
 
-def parse_frontmatter(content):
-    """Parse YAML frontmatter from markdown content."""
-    if not content.startswith("---"):
-        return {}
-    end = content.find("---", 3)
-    if end == -1:
-        return {}
-    fm = {}
-    for line in content[3:end].strip().split("\n"):
-        if ":" in line:
-            key, _, val = line.partition(":")
-            key = key.strip()
-            val = val.strip().strip('"').strip("'")
-            if val.startswith("[") and val.endswith("]"):
-                # Parse array
-                val = [v.strip().strip('"').strip("'") for v in val[1:-1].split(",")]
-            fm[key] = val
-    return fm
+
+LATEX_SPECIAL = {
+    "\\": r"\textbackslash{}",
+    "&": r"\&",
+    "%": r"\%",
+    "$": r"\$",
+    "#": r"\#",
+    "_": r"\_",
+    "{": r"\{",
+    "}": r"\}",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+}
+
+
+def escape_latex(text):
+    """Escape characters that break LaTeX builds (e.g. "R&D", "50%")."""
+    return "".join(LATEX_SPECIAL.get(ch, ch) for ch in str(text))
 
 
 def to_bibtex_key(title, year):
@@ -34,7 +35,7 @@ def to_bibtex_key(title, year):
     return f"{key}{year}"
 
 
-def source_to_bibtex(fm):
+def source_to_bibtex(fm, key):
     """Convert a source's frontmatter to a BibTeX entry."""
     title = fm.get("title", "Unknown Title")
     authors = fm.get("authors", [])
@@ -47,8 +48,7 @@ def source_to_bibtex(fm):
     if isinstance(authors, str):
         authors = [authors]
 
-    key = to_bibtex_key(title, year)
-    author_str = " and ".join(authors) if authors else "Unknown"
+    author_str = " and ".join(escape_latex(a) for a in authors) if authors else "Unknown"
 
     entry_type = "article"
     if source_type in ("book-chapter",):
@@ -57,11 +57,11 @@ def source_to_bibtex(fm):
         entry_type = "book"
 
     lines = [f"@{entry_type}{{{key},"]
-    lines.append(f"  title = {{{title}}},")
+    lines.append(f"  title = {{{escape_latex(title)}}},")
     lines.append(f"  author = {{{author_str}}},")
     lines.append(f"  year = {{{year}}},")
     if journal:
-        lines.append(f"  journal = {{{journal}}},")
+        lines.append(f"  journal = {{{escape_latex(journal)}}},")
     if doi:
         lines.append(f"  doi = {{{doi}}},")
     if url:
@@ -81,11 +81,18 @@ def main():
         sys.exit(1)
 
     entries = []
+    used_keys = set()
     for md_file in sorted(sources_path.glob("source-*.md")):
         content = md_file.read_text(encoding="utf-8", errors="replace")
-        fm = parse_frontmatter(content)
+        fm, _ = parse_frontmatter(content)
         if fm.get("title"):
-            entries.append(source_to_bibtex(fm))
+            # Keys must be unique: a second "the2019" becomes "the2019b", then "the2019c"...
+            base = to_bibtex_key(fm["title"], fm.get("year", "n.d."))
+            key, suffix = base, ord("b")
+            while key in used_keys:
+                key, suffix = f"{base}{chr(suffix)}", suffix + 1
+            used_keys.add(key)
+            entries.append(source_to_bibtex(fm, key))
 
     if not entries:
         print("No sources found", file=sys.stderr)
