@@ -77,6 +77,13 @@ else
     echo -e "${GREEN}  ✓ Node.js found ($(node --version))${NC}"
 fi
 
+# Claude Code needs Node.js 22+, Gemini CLI needs 20+
+NODE_MAJOR=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
+if [[ "$NODE_MAJOR" -lt 22 ]]; then
+    echo -e "${YELLOW}  Node.js $(node --version) is older than v22. Claude Code needs v22+ and Gemini CLI needs v20+.${NC}"
+    echo -e "${YELLOW}  Get the current LTS from https://nodejs.org if the CLI install below fails.${NC}"
+fi
+
 # ── Check for an AI CLI ─────────────────────────────────────────────
 CLI_FOUND=false
 
@@ -103,7 +110,8 @@ if [[ "$CLI_FOUND" == "false" ]]; then
     echo "  3) Codex       (OpenAI)"
     echo "  4) Skip — I'll install one myself"
     echo ""
-    read -p "Choice [1-4]: " choice
+    # Read from the terminal, not stdin — under `curl | bash`, stdin is the script itself
+    read -r -p "Choice [1-4]: " choice </dev/tty || choice=""
 
     case "$choice" in
         1)
@@ -113,7 +121,7 @@ if [[ "$CLI_FOUND" == "false" ]]; then
             ;;
         2)
             echo -e "${CYAN}Installing Gemini CLI...${NC}"
-            npx https://github.com/google-gemini/gemini-cli
+            npm install -g @google/gemini-cli
             CLI_NAME="gemini"
             ;;
         3)
