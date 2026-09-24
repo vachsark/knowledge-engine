@@ -11,25 +11,7 @@ import re
 import sys
 from pathlib import Path
 
-
-def parse_frontmatter(content):
-    """Parse YAML frontmatter from markdown content."""
-    if not content.startswith("---"):
-        return {}, content
-    end = content.find("---", 3)
-    if end == -1:
-        return {}, content
-    fm = {}
-    for line in content[3:end].strip().split("\n"):
-        if ":" in line:
-            key, _, val = line.partition(":")
-            key = key.strip()
-            val = val.strip().strip('"').strip("'")
-            if val.startswith("[") and val.endswith("]"):
-                val = [v.strip().strip('"').strip("'") for v in val[1:-1].split(",") if v.strip()]
-            fm[key] = val
-    body = content[end + 3:].strip()
-    return fm, body
+from frontmatter import parse_frontmatter
 
 
 def extract_section(body, heading):
@@ -43,14 +25,27 @@ def escape_html(text):
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
-def generate_html(sources_dir, output_path):
-    sources_path = Path(sources_dir)
-    if not sources_path.exists():
-        print(f"No sources directory: {sources_dir}", file=sys.stderr)
-        sys.exit(1)
+def iter_source_files(source_dirs):
+    """Yield (path, id prefix) for every source file in the given directories."""
+    prefixed = len(source_dirs) > 1
+    for src_dir in source_dirs:
+        src_path = Path(src_dir)
+        if not src_path.exists():
+            continue
+        prefix = f"{src_path.resolve().parent.name}--" if prefixed else ""
+        for md_file in sorted(src_path.glob("source-*.md")):
+            yield md_file, prefix
 
+
+def generate_html(source_dirs, output_path):
+    """Build one viewer from one or more sources/ directories.
+
+    With several directories, each file id is prefixed with its project name
+    ("dissertation--source-001.md") so ids stay unique, and each paper's
+    cites/cited_by are prefixed the same way so links stay within its project.
+    """
     papers = []
-    for md_file in sorted(sources_path.glob("source-*.md")):
+    for md_file, prefix in iter_source_files(source_dirs):
         content = md_file.read_text(encoding="utf-8", errors="replace")
         fm, body = parse_frontmatter(content)
         if not fm.get("title"):
@@ -72,9 +67,11 @@ def generate_html(sources_dir, output_path):
             cites = [c.strip() for c in cites.strip("[]").split(",") if c.strip()]
         if isinstance(cited_by, str):
             cited_by = [c.strip() for c in cited_by.strip("[]").split(",") if c.strip()]
+        cites = [prefix + c for c in cites]
+        cited_by = [prefix + c for c in cited_by]
 
         papers.append({
-            "file": md_file.name,
+            "file": prefix + md_file.name,
             "title": fm.get("title", ""),
             "authors": authors,
             "year": fm.get("year", ""),
@@ -99,7 +96,8 @@ def generate_html(sources_dir, output_path):
 
     # Build papers JSON for embedding
     import json
-    papers_json = json.dumps(papers, indent=2)
+    # "</" is escaped so text like "</script>" in an abstract can't end the <script> block early
+    papers_json = json.dumps(papers, indent=2).replace("</", "<\\/")
 
     html = """<!DOCTYPE html>
 <html lang="en">
@@ -332,7 +330,9 @@ function render() {
   container.innerHTML = filtered.map(p => {
     const decision = decisions[p.file] || '';
     const isDeclined = decision === 'declined';
-    const authorsStr = Array.isArray(p.authors) ? p.authors.join(', ') : (p.authors || 'Unknown');
+    // "Last, First" names already contain commas, so separate them with semicolons
+    const authorSep = Array.isArray(p.authors) && p.authors.some(a => a.includes(',')) ? '; ' : ', ';
+    const authorsStr = Array.isArray(p.authors) ? p.authors.join(authorSep) : (p.authors || 'Unknown');
 
     return '<div class="paper ' + (isDeclined ? 'declined' : '') + '" data-file="' + p.file + '">' +
       '<div class="paper-header">' +
@@ -345,8 +345,8 @@ function render() {
           '</div>' +
         '</div>' +
         '<div class="actions">' +
-          '<button class="btn ' + (decision === 'approved' ? 'approved' : '') + '" onclick="toggleDecision(\'' + p.file + '\', \'approved\')">Approve</button>' +
-          '<button class="btn ' + (decision === 'declined' ? 'declined' : '') + '" onclick="toggleDecision(\'' + p.file + '\', \'declined\')">Decline</button>' +
+          '<button class="btn ' + (decision === 'approved' ? 'approved' : '') + '" onclick="toggleDecision(\\'' + p.file + '\\', \\'approved\\')">Approve</button>' +
+          '<button class="btn ' + (decision === 'declined' ? 'declined' : '') + '" onclick="toggleDecision(\\'' + p.file + '\\', \\'declined\\')">Decline</button>' +
         '</div>' +
       '</div>' +
       '<div class="badges">' +
@@ -383,13 +383,13 @@ function buildCitationLinks(p) {
   cites.forEach(ref => {
     const linked = papers.find(pp => pp.file === ref + '.md' || pp.file === ref);
     const label = linked ? linked.title.substring(0, 40) + '...' : ref;
-    html += '<button class="citation-link cites" onclick="scrollToSource(\'' + ref + '\')" title="This paper cites: ' + (linked ? escapeHtml(linked.title) : ref) + '">cites: ' + escapeHtml(label) + '</button>';
+    html += '<button class="citation-link cites" onclick="scrollToSource(\\'' + ref + '\\')" title="This paper cites: ' + (linked ? escapeHtml(linked.title) : ref) + '">cites: ' + escapeHtml(label) + '</button>';
   });
 
   citedBy.forEach(ref => {
     const linked = papers.find(pp => pp.file === ref + '.md' || pp.file === ref);
     const label = linked ? linked.title.substring(0, 40) + '...' : ref;
-    html += '<button class="citation-link cited-by" onclick="scrollToSource(\'' + ref + '\')" title="Cited by: ' + (linked ? escapeHtml(linked.title) : ref) + '">cited by: ' + escapeHtml(label) + '</button>';
+    html += '<button class="citation-link cited-by" onclick="scrollToSource(\\'' + ref + '\\')" title="Cited by: ' + (linked ? escapeHtml(linked.title) : ref) + '">cited by: ' + escapeHtml(label) + '</button>';
   });
 
   html += '</div></div>';
@@ -470,43 +470,18 @@ def main():
         scan_root = args[1] if len(args) > 1 else "."
         source_dirs = []
         for dirpath, dirnames, filenames in os.walk(scan_root):
+            dirnames.sort()
             if os.path.basename(dirpath) == "sources" and any(f.startswith("source-") for f in filenames):
                 source_dirs.append(dirpath)
-        if not source_dirs:
-            # Fallback: check root sources/
-            if os.path.isdir(os.path.join(scan_root, "sources")):
-                source_dirs = [os.path.join(scan_root, "sources")]
         args = source_dirs if source_dirs else ["sources"]
 
-    if len(args) == 1:
-        # Single directory — output next to it or at root
-        sources_dir = args[0]
-        # Always output at project root (find the knowledge-engine root)
-        script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        output_file = os.path.join(script_dir, "index.html")
-        generate_html(sources_dir, output_file)
-    else:
-        # Multiple directories — merge all into one viewer at project root
-        import tempfile
-        with tempfile.TemporaryDirectory() as tmpdir:
-            count = 0
-            for src_dir in args:
-                src_path = Path(src_dir)
-                if not src_path.exists():
-                    continue
-                for md in src_path.glob("source-*.md"):
-                    count += 1
-                    # Prefix with project name to avoid collisions
-                    project = src_path.parent.name
-                    dest = os.path.join(tmpdir, f"{project}--{md.name}")
-                    import shutil
-                    shutil.copy2(md, dest)
-            if count == 0:
-                print("No sources found in any directory", file=sys.stderr)
-                sys.exit(1)
-            script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            output_file = os.path.join(script_dir, "index.html")
-            generate_html(tmpdir, output_file)
+    if not any(Path(d).exists() for d in args):
+        print(f"No sources directory: {', '.join(args)}", file=sys.stderr)
+        sys.exit(1)
+
+    # Always output at the knowledge-engine root, one viewer for everything
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    generate_html(args, os.path.join(script_dir, "index.html"))
 
 
 if __name__ == "__main__":

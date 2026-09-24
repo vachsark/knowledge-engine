@@ -11,3 +11,6 @@ bibliography.bib
 sources.csv
 index.html
 Knowledge/
+
+# Python bytecode cache (scripts import frontmatter.py)
+__pycache__/

@@ -11,7 +11,7 @@
 
 - **No data collection.** Nothing is sent to us. We have no server, no analytics, no telemetry.
 - **No API keys.** The tool uses your existing CLI subscription. We never see your credentials.
-- **No network calls.** The only network activity comes from your AI CLI doing web searches. Our scripts (export-bibtex.py, export-csv.py, generate-viewer.py) are fully offline.
+- **No network calls.** The only network activity comes from your AI CLI doing web searches. Our scripts (frontmatter.py, export-bibtex.py, export-csv.py, generate-viewer.py) are fully offline.
 - **No file access outside this folder.** The AI CLI works within this project directory. It does not read your documents, emails, or other files.
 - **No background processes.** Nothing runs when you're not using it.
 
@@ -38,13 +38,14 @@ This is a small project. The complete list of our code:
 | `.claude/agents/research-critic.md` | ~30 | Citation verification agent |
 | `.claude/agents/research-skeptic.md` | ~30 | Relevance review agent |
 | `.claude/agents/research-analyzer.md` | ~50 | Cross-paper analysis agent |
-| `scripts/export-bibtex.py` | ~100 | Reads source files, writes bibliography.bib |
+| `scripts/frontmatter.py` | ~45 | Shared parser for source-file metadata (used by the three scripts below) |
+| `scripts/export-bibtex.py` | ~110 | Reads source files, writes bibliography.bib |
 | `scripts/export-csv.py` | ~60 | Reads source files, writes sources.csv |
-| `scripts/generate-viewer.py` | ~470 | Reads source files, generates index.html |
+| `scripts/generate-viewer.py` | ~490 | Reads source files, generates index.html |
 | `research.sh` | ~280 | Terminal runner (optional) |
 | `install.sh` | ~140 | Installer (optional) |
 
-Total: ~1,400 lines. You can read all of it in 15 minutes.
+Total: ~1,600 lines. You can read all of it in 15 minutes.
 
 ## Reporting issues
 
