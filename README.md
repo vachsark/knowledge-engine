@@ -231,6 +231,19 @@ Plus exports:
 | "Review my sources"        | Verifies citations are real, flags anything suspicious     |
 | "Check relevance"          | Re-evaluates which papers actually fit your question       |
 
+## Checking that papers are real
+
+Run this to check every saved paper against [OpenAlex](https://openalex.org), a free open catalog of scholarly papers:
+
+```bash
+python3 scripts/verify-sources.py projects/my-project/sources          # report only
+python3 scripts/verify-sources.py projects/my-project/sources --fix    # also fill in blanks
+```
+
+Each paper is marked **VERIFIED**, **MISMATCH** (wrong year or author, for example), or **NOT FOUND**. With `--fix`, it fills in missing DOIs, journals, free PDF links, and abstracts. It never changes titles or authors, and never deletes anything. "Review my sources" and `research.sh --deep` run it for you.
+
+OpenAlex needs a free API key for regular use: create one at [openalex.org/settings/api](https://openalex.org/settings/api), then add `--api-key YOUR_KEY` or set `OPENALEX_API_KEY`. Without a key you only get a small daily test allowance.
+
 ## Viewing your sources
 
 After research completes, open `index.html` in your browser. You get:
@@ -298,9 +311,9 @@ Most students get free or discounted access through their school's Google Worksp
 ## Privacy and trust
 
 - **No data collection.** Nothing is sent to us. No server, no analytics, no telemetry.
-- **No API keys.** Uses your existing CLI subscription only. We never see your credentials.
+- **No API keys required.** Uses your existing CLI subscription. (The optional paper checker works best with a free OpenAlex key, which stays on your computer.) We never see your credentials.
 - **No file access outside this folder.** The AI works within this project directory only.
-- **Fully open source.** ~1,600 lines of code total. You can read all of it in 15 minutes.
+- **Fully open source.** ~1,800 lines of code total. You can read all of it in 15 minutes.
 
 See [SECURITY.md](SECURITY.md) for the full breakdown of what every file does.
 

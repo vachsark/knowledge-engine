@@ -114,7 +114,7 @@ When the user asks for research, detect the mode:
 - "find/research [topic]" -- Find + save citations (Abstract + Why Relevant)
 - "summarize [topic]" -- Find + save + add Key Findings section (3-5 bullets per paper)
 - "analyze [topic]" -- Find + summarize + create analysis/ folder with themes.md, gaps.md, timeline.md, methodology-summary.md
-- "review my sources" -- Verify citations are real, fix errors, flag unverifiable papers
+- "review my sources" -- Verify citations are real, fix errors, flag unverifiable papers -- start by running `python3 scripts/verify-sources.py <path-to-sources> --fix`, which checks each paper against the OpenAlex catalog and fills in missing DOIs, journals, PDF links and abstracts; then investigate every MISMATCH and NOT FOUND it reports
 - "check relevance" -- Re-evaluate relevance ratings, downgrade papers that don't fit
 
 ## Agents
